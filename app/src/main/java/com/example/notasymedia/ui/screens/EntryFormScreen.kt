@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Folder
@@ -71,7 +71,7 @@ fun FormToolbar(isTask: Boolean) {
         title = { Text(if (isTask) "Nueva Tarea" else "Nueva Nota") },
         navigationIcon = {
             IconButton(onClick = { /* Volver atrás */ }) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
             }
         },
         actions = {

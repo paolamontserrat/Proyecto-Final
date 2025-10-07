@@ -14,19 +14,26 @@ import com.example.notasymedia.ui.theme.NotasYMediaTheme
 
 
 @Composable
-fun MasterDetailLayout(modifier: Modifier = Modifier) {
+fun MasterDetailLayout(
+    modifier: Modifier = Modifier,
+    selectedItemId: Int, // El ID de la nota/tarea seleccionada
+    onNavigateToEdit: () -> Unit // Acción para ir a EntryFormScreen
+){
     Row(modifier = modifier.fillMaxSize()) {
 
         //Contiene la lista principal
         Column(modifier = Modifier.weight(0.4f).fillMaxHeight()) {
-            MainScreen(modifier = Modifier.fillMaxSize())
+            MainScreen(modifier = Modifier.fillMaxSize(), onNavigateToForm = onNavigateToEdit)
         }
 
         // Separador visual
         Spacer(modifier = Modifier.width(1.dp).fillMaxHeight())
 
         Column(modifier = Modifier.weight(0.6f).fillMaxHeight()) {
-            DetailScreen()
+            DetailScreen(
+                itemId = selectedItemId, // Debes pasar un ID válido
+                onNavigateToEdit = onNavigateToEdit
+            )
         }
     }
 }
@@ -56,6 +63,7 @@ fun DetailScreen() {
 @Composable
 fun PreviewMasterDetailLayout() {
     NotasYMediaTheme {
-        MasterDetailLayout()
+        MasterDetailLayout(selectedItemId = 101, onNavigateToEdit = {})
+
     }
 }

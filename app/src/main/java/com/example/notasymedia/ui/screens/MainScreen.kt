@@ -10,23 +10,41 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun MainScreen(modifier: Modifier = Modifier, onNavigateToForm: () -> Unit) {
+    var selectedTabIndex by remember { mutableStateOf(0) } // <-- Nuevo estado
+
     Scaffold(
-        topBar = { AppToolbar() }, // Barra Superior Búsqueda/Orden
-        floatingActionButton = { CustomFab(onClick = {}) }
+        topBar = { AppToolbar() },
+        floatingActionButton = { CustomFab(onClick = onNavigateToForm ) }
     ) { paddingValues ->
-        // Contiene la lista y las pestañas
         Column(modifier = modifier.padding(paddingValues).fillMaxSize()) {
-            FilterTabs() // Pestañas para Todos/Notas/Tareas/Cumplidas
+
+            // 2. Pasar el estado y el setter a FilterTabs
+            FilterTabs(selectedTabIndex = selectedTabIndex, onTabSelected = { selectedTabIndex = it })
 
             // Simulación de la lista de notas/tareas
             LazyColumn(contentPadding = PaddingValues(16.dp)) {
-                // Generación de 5 tarjetas de ejemplo
-                items(5) {
+
+                // 3. Simular el filtrado de la lista:
+                val listCount = when (selectedTabIndex) {
+                    0 -> 5 // Todas: 5 elementos de ejemplo
+                    1 -> 3 // Notas: 3 elementos de ejemplo
+                    2 -> 2 // Tareas: 2 elementos de ejemplo
+                    3 -> 1 // Cumplidas: 1 elemento de ejemplo
+                    else -> 0
+                }
+
+                items(count = listCount) {
                     TaskCard(modifier = Modifier.padding(bottom = 8.dp))
                 }
             }
@@ -73,13 +91,14 @@ fun AppToolbar() {
 }
 
 @Composable
-fun FilterTabs() {
-    // Implementación del Segmented Control (Tabs)
-    TabRow(selectedTabIndex = 0) {
-        listOf("Todas", "Notas", "Tareas", "Cumplidas").forEachIndexed { index, title ->
+fun FilterTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit) {
+    val tabTitles = listOf("Todas", "Notas", "Tareas", "Cumplidas")
+
+    TabRow(selectedTabIndex = selectedTabIndex) {
+        tabTitles.forEachIndexed { index, title ->
             Tab(
-                selected = index == 0,
-                onClick = { /* Cambiar filtro */ },
+                selected = index == selectedTabIndex,
+                onClick = { onTabSelected(index) },
                 text = { Text(title) }
             )
         }
@@ -97,6 +116,6 @@ fun CustomFab(onClick: () -> Unit) {
 @Composable
 fun PreviewMainScreen() {
     NotasYMediaTheme {
-        MainScreen()
+        MainScreen(onNavigateToForm = {})
     }
 }

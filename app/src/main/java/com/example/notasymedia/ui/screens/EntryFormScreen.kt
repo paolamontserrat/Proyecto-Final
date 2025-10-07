@@ -17,13 +17,13 @@ import com.example.notasymedia.ui.theme.NotasYMediaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EntryFormScreen(modifier: Modifier = Modifier) {
+fun EntryFormScreen(modifier: Modifier = Modifier, onNavigateBack: () -> Unit) {
     // Estado para manejar si es NOTA o TAREA (RF-06)
     var isTask by remember { mutableStateOf(false) }
     var showMediaSheet by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { FormToolbar(isTask) },
+        topBar = { FormToolbar(isTask, onNavigateBack) },
     ) { paddingValues ->
         Column(modifier = modifier
             .padding(paddingValues)
@@ -66,12 +66,12 @@ fun EntryFormScreen(modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormToolbar(isTask: Boolean) {
+fun FormToolbar(isTask: Boolean, onNavigateBack: () -> Unit) {
     CenterAlignedTopAppBar (
         title = { Text(if (isTask) "Nueva Tarea" else "Nueva Nota") },
         navigationIcon = {
-            IconButton(onClick = { /* Volver atrás */ }) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+            IconButton(onClick = onNavigateBack) {
+            Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
             }
         },
         actions = {
@@ -173,6 +173,6 @@ fun MediaPickerBottomSheet(onDismiss: () -> Unit) {
 @Composable
 fun PreviewEntryFormScreen() {
     NotasYMediaTheme {
-        EntryFormScreen()
+        EntryFormScreen(onNavigateBack = {})
     }
 }

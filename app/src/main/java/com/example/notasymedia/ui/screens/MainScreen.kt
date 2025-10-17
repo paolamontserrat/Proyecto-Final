@@ -1,5 +1,6 @@
 package com.example.notasymedia.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -79,10 +80,10 @@ fun MainScreen(
                     TaskCard(
                         nota = nota,
                         modifier = Modifier.padding(bottom = 8.dp),
-                        onAbrir = { onNavigateToDetail(it) },
-                        onEditar = { onNavigateToForm(it) },
-                        onCompletar = { viewModel.marcarCompletada(it.id, !it.esCompletada) },
-                        onEliminar = { viewModel.eliminar(it) }
+                        onAbrir = { onNavigateToDetail(nota.id) }, // Mover a clic en Card
+                        onEditar = { onNavigateToForm(nota.id) },
+                        onCompletar = { viewModel.marcarCompletada(nota.id, !nota.esCompletada) },
+                        onEliminar = { viewModel.eliminar(nota.id) }
                     )
                 }
             }
@@ -90,27 +91,26 @@ fun MainScreen(
     }
 }
 
-// Card con datos reales de NotaEntity
 @Composable
 fun TaskCard(
     nota: NotaEntity,
     modifier: Modifier = Modifier,
-    onAbrir: (Int) -> Unit = {},
-    onEditar: (Int) -> Unit = {},
-    onCompletar: (NotaEntity) -> Unit = {},
-    onEliminar: (Int) -> Unit = {}
+    onAbrir: () -> Unit = {},
+    onEditar: () -> Unit = {},
+    onCompletar: () -> Unit = {},
+    onEliminar: () -> Unit = {}
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onAbrir), // Hacer la Card clickable para abrir
         colors = CardDefaults.cardColors(
             containerColor = if (nota.esCompletada) MaterialTheme.colorScheme.primaryContainer
             else MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -124,21 +124,18 @@ fun TaskCard(
             if (nota.esCompletada && nota.tipo == TipoNota.TAREA) {
                 Icon(imageVector = Icons.Filled.Check, contentDescription = "Completada")
             }
-            IconButton(onClick = { onAbrir(nota.id) }) {
-                Icon(Icons.Filled.OpenInFull, contentDescription = "Abrir")
-            }
             if (nota.tipo == TipoNota.TAREA) {
-                IconButton(onClick = { onCompletar(nota) }) {
+                IconButton(onClick = onCompletar) {
                     Icon(
                         imageVector = if (nota.esCompletada) Icons.Filled.Undo else Icons.Filled.Check,
                         contentDescription = if (nota.esCompletada) "Desmarcar" else "Completar"
                     )
                 }
             }
-            IconButton(onClick = { onEditar(nota.id) }) {
+            IconButton(onClick = onEditar) {
                 Icon(Icons.Filled.Edit, contentDescription = "Editar")
             }
-            IconButton(onClick = { onEliminar(nota.id) }) {
+            IconButton(onClick = onEliminar) {
                 Icon(Icons.Filled.Delete, contentDescription = "Eliminar")
             }
         }

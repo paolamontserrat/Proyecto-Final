@@ -26,7 +26,7 @@ import java.util.Date
 @Composable
 fun EntryFormScreen(
     modifier: Modifier = Modifier,
-    itemId: Int = -1,  // -1 para nuevo, ID positivo para editar
+    itemId: Int = -1, // -1 para nuevo, ID positivo para editar
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -43,6 +43,7 @@ fun EntryFormScreen(
     var descripcion by remember { mutableStateOf("") }
     var isTask by remember { mutableStateOf(false) }
     var fechaVencimiento by remember { mutableStateOf<Date?>(null) }
+    var showDatePicker by remember { mutableStateOf(false) }
     var showMediaSheet by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -56,6 +57,12 @@ fun EntryFormScreen(
                 descripcion = it.descripcion
                 isTask = it.tipo == TipoNota.TAREA
                 fechaVencimiento = it.fechaVencimiento
+            } ?: run {
+                // Si no se encuentra la nota, inicializar vacio
+                titulo = ""
+                descripcion = ""
+                isTask = false
+                fechaVencimiento = null
             }
         }
     }
@@ -67,7 +74,7 @@ fun EntryFormScreen(
                 onClick = {
                     coroutineScope.launch {
                         val nota = NotaEntity(
-                            id = if (itemId != -1) itemId else 0,  // 0 para nuevo (Room auto-genera)
+                            id = if (itemId != -1) itemId else 0, // 0 para nuevo (Room auto-genera)
                             titulo = titulo,
                             descripcion = descripcion,
                             tipo = if (isTask) TipoNota.TAREA else TipoNota.NOTA,
@@ -83,7 +90,7 @@ fun EntryFormScreen(
                         onNavigateBack()
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
                 Text(if (itemId != -1) "Actualizar" else "Guardar")
             }
@@ -96,7 +103,6 @@ fun EntryFormScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Selector Nota/Tarea (asumiendo ClassificationSwitch definido)
             ClassificationSwitch(isTask) { isTask = it }
 
             Spacer(Modifier.height(16.dp))
@@ -115,25 +121,47 @@ fun EntryFormScreen(
                 maxLines = 5
             )
 
-            // Campos de Fecha/Hora (solo si es Tarea)
             if (isTask) {
                 Spacer(Modifier.height(16.dp))
-                // Placeholder para selector de fecha/hora - puedes reemplazar con DatePickerDialog
-                Text("Fecha de Vencimiento: ${fechaVencimiento ?: "No seleccionada"}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary)
-                Button(onClick = { /* Implementar DatePicker aquí */ }) {
-                    Text("Seleccionar Fecha")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Fecha de Vencimiento: ${fechaVencimiento?.let { "${it.date}/${it.month + 1}/${it.year + 1900}" } ?: "No seleccionada"}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Button(onClick = { showDatePicker = true }) {
+                        Text("Seleccionar")
+                    }
                 }
             }
 
             Spacer(Modifier.height(24.dp))
             Text("Adjuntar Multimedia (RF-02)", style = MaterialTheme.typography.titleMedium)
-
-            // Botones para adjuntar
             MediaTypeSelector(onAttachClicked = { showMediaSheet = true })
 
             Text("--- Placeholder: ScrollableRow de miniaturas (AttachmentRow) ---")
+        }
+    }
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    fechaVencimiento = Date() // Aquí deberías ajustar con la fecha seleccionada
+                    showDatePicker = false
+                }) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            // Placeholder para DatePicker (necesita implementación real)
+            Text("Selecciona una fecha", modifier = Modifier.padding(16.dp))
         }
     }
 

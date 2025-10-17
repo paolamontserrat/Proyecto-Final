@@ -80,8 +80,7 @@ fun MainScreen(
                     TaskCard(
                         nota = nota,
                         modifier = Modifier.padding(bottom = 8.dp),
-                        onAbrir = { onNavigateToDetail(nota.id) }, // Mover a clic en Card
-                        onEditar = { onNavigateToForm(nota.id) },
+                        onAbrir = { onNavigateToDetail(nota.id) },
                         onCompletar = { viewModel.marcarCompletada(nota.id, !nota.esCompletada) },
                         onEliminar = { viewModel.eliminar(nota.id) }
                     )
@@ -96,7 +95,6 @@ fun TaskCard(
     nota: NotaEntity,
     modifier: Modifier = Modifier,
     onAbrir: () -> Unit = {},
-    onEditar: () -> Unit = {},
     onCompletar: () -> Unit = {},
     onEliminar: () -> Unit = {}
 ) {
@@ -131,9 +129,6 @@ fun TaskCard(
                         contentDescription = if (nota.esCompletada) "Desmarcar" else "Completar"
                     )
                 }
-            }
-            IconButton(onClick = onEditar) {
-                Icon(Icons.Filled.Edit, contentDescription = "Editar")
             }
             IconButton(onClick = onEliminar) {
                 Icon(Icons.Filled.Delete, contentDescription = "Eliminar")

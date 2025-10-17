@@ -27,6 +27,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notasymedia.data.entity.NotaEntity
+import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.viewmodel.NotaViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -72,33 +73,38 @@ fun DetailScreen(
                 Text("Cargando nota...", style = MaterialTheme.typography.bodyMedium)
             } else {
                 Text(
-                    text = nota!!.titulo, // Título real
+                    text = nota!!.titulo,
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Filled.CheckCircle,
-                        contentDescription = "Completado",
-                        tint = if (nota!!.esCompletada) Color.Green else Color.Gray,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = if (nota!!.esCompletada) "Completada el ${
-                            SimpleDateFormat(
-                                "dd/MM/yyyy HH:mm",
-                                Locale.getDefault()
-                            ).format(nota!!.fechaCreacion)}" else "Pendiente",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    if (nota!!.tipo == TipoNota.TAREA) {
+                        Icon(
+                            Icons.Filled.CheckCircle,
+                            contentDescription = "Completado",
+                            tint = if (nota!!.esCompletada) Color.Green else Color.Gray,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = if (nota!!.esCompletada) "Completada el ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(nota!!.fechaCreacion)}" else "Pendiente",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        if (nota!!.fechaVencimiento != null) {
+                            Text(
+                                text = "Vence: ${SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(nota!!.fechaVencimiento!!)}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    }
                 }
 
                 Spacer(Modifier.height(16.dp))
 
                 Text(
-                    text = nota!!.descripcion, // Descripción real
+                    text = nota!!.descripcion,
                     style = MaterialTheme.typography.bodyLarge
                 )
 

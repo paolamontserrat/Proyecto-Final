@@ -1,5 +1,6 @@
 package com.example.notasymedia.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,7 +21,9 @@ import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import com.example.notasymedia.viewmodel.NotaViewModel
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,13 +55,14 @@ fun EntryFormScreen(
     LaunchedEffect(itemId) {
         if (itemId != -1) {
             val nota = viewModel.obtenerPorId(itemId)
+            Log.d("EntryFormScreen", "Cargando nota con ID $itemId: $nota")  // Log para depuración
             nota?.let {
                 titulo = it.titulo
                 descripcion = it.descripcion
                 isTask = it.tipo == TipoNota.TAREA
                 fechaVencimiento = it.fechaVencimiento
             } ?: run {
-                // Si no se encuentra la nota, inicializar vacio
+                Log.d("EntryFormScreen", "Nota no encontrada para ID $itemId")
                 titulo = ""
                 descripcion = ""
                 isTask = false
@@ -123,14 +127,15 @@ fun EntryFormScreen(
 
             if (isTask) {
                 Spacer(Modifier.height(16.dp))
+                val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Fecha de Vencimiento: ${fechaVencimiento?.let { "${it.date}/${it.month + 1}/${it.year + 1900}" } ?: "No seleccionada"}",
+                        text = "Fecha de Vencimiento: ${fechaVencimiento?.let { formatter.format(it) } ?: "No seleccionada"}",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)
                     )
                     Button(onClick = { showDatePicker = true }) {
-                        Text("Seleccionar")
+                        Text("Seleccionar Fecha")
                     }
                 }
             }
@@ -144,11 +149,14 @@ fun EntryFormScreen(
     }
 
     if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    fechaVencimiento = Date() // Aquí deberías ajustar con la fecha seleccionada
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        fechaVencimiento = Date(millis)
+                    }
                     showDatePicker = false
                 }) {
                     Text("OK")
@@ -160,8 +168,7 @@ fun EntryFormScreen(
                 }
             }
         ) {
-            // Placeholder para DatePicker (necesita implementación real)
-            Text("Selecciona una fecha", modifier = Modifier.padding(16.dp))
+            DatePicker(state = datePickerState)
         }
     }
 

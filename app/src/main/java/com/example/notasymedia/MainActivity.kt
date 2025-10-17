@@ -1,5 +1,6 @@
 package com.example.notasymedia
 
+import android.R.attr.id
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -50,7 +51,7 @@ fun AppContent(widthSizeClass: WindowWidthSizeClass) {
     if (widthSizeClass == WindowWidthSizeClass.Expanded) {
         MasterDetailLayout(
             selectedItemId = -1,
-            onNavigateToEdit = { navController.navigate("entry_form/-1") },
+            onNavigateToEdit = { navController.navigate("entry_form/$id") },
             onNavigateToDetail = { id -> navController.navigate("detail/$id") },
             navController = navController
         )

@@ -2,6 +2,7 @@ package com.example.notasymedia.ui.screens
 
 
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
@@ -10,12 +11,25 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.notasymedia.data.entity.NotaEntity
+import com.example.notasymedia.viewmodel.NotaViewModel
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 
 @Composable
@@ -26,11 +40,27 @@ fun DetailScreen(
     onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (Int) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val viewModel: NotaViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return NotaViewModel(context) as T
+            }
+        }
+    )
+
+    var nota by remember { mutableStateOf<NotaEntity?>(null) }
+
+    LaunchedEffect(itemId) {
+        val loadedNota = viewModel.obtenerPorId(itemId)
+        Log.d("DetailScreen", "Cargando nota con ID $itemId: $loadedNota")  // Log para depuración
+        nota = loadedNota
+    }
+
     Scaffold(
         topBar = { DetailToolbar(itemId = itemId, onNavigateToEdit = onNavigateToEdit, onNavigateBack = onNavigateBack) },
         bottomBar = { TaskActionsBottomBar() }
     ) { paddingValues ->
-        // Usamos Column y verticalScroll para que el contenido sea deslizable
         Column(
             modifier = modifier
                 .padding(paddingValues)
@@ -38,63 +68,47 @@ fun DetailScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Contenido de la Tarea/Nota (Basado en Prototipo 4)
-
-            // Título (Placeholder)
-            Text(
-                text = "Detalle de Tarea con ID: $itemId", // Muestra el ID recibido
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-
-            // Indicador de Estado/Vencimiento
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Filled.CheckCircle,
-                    contentDescription = "Completado",
-                    tint = Color.Green, // Usar un color claro de success
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(Modifier.width(8.dp))
+            if (nota == null) {
+                Text("Cargando nota...", style = MaterialTheme.typography.bodyMedium)
+            } else {
                 Text(
-                    text = "Pagado el 15/03/2024 a las 18:00",
-                    style = MaterialTheme.typography.bodyMedium
+                    text = nota!!.titulo, // Título real
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
-            }
 
-            Spacer(Modifier.height(16.dp))
-
-            // Descripción
-            Text(
-                text = "Descripción completa de la tarea. Lorem ipsum Lonem, dor amet, consectetur adipiscing elit. Sed do eiusmod tempor t labore et dolore magna aliqua.",
-                style = MaterialTheme.typography.bodyLarge
-            )
-
-            // --- SECCIÓN: ARCHIVOS ADJUNTOS (RF-12) ---
-            Spacer(Modifier.height(24.dp))
-            Text("Archivos Adjuntos", style = MaterialTheme.typography.titleMedium)
-            AttachmentRow() // Composable para la fila de miniaturas
-
-            // --- SECCIÓN: RECORDATORIOS (RF-08) ---
-            Spacer(Modifier.height(24.dp))
-            Text("Recordatorios Programados", style = MaterialTheme.typography.titleMedium)
-
-            // Placeholder de recordatorios
-            Column {
-                Text("14/2024 10:00 - Notificado")
-                Text("15/2024 17:00 - Notificado")
-                // Botón para agregar recordatorio (RF-08)
-                Button(onClick = { /* Abrir diálogo de recordatorio */ },
-                    modifier = Modifier.align(Alignment.End)) {
-                    Icon(Icons.Filled.Add, contentDescription = "Añadir Recordatorio")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.CheckCircle,
+                        contentDescription = "Completado",
+                        tint = if (nota!!.esCompletada) Color.Green else Color.Gray,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = if (nota!!.esCompletada) "Completada el ${
+                            SimpleDateFormat(
+                                "dd/MM/yyyy HH:mm",
+                                Locale.getDefault()
+                            ).format(nota!!.fechaCreacion)}" else "Pendiente",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
-            }
 
-            Spacer(Modifier.height(32.dp)) // Espacio final
+                Spacer(Modifier.height(16.dp))
+
+                Text(
+                    text = nota!!.descripcion, // Descripción real
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Spacer(Modifier.height(24.dp))
+                Text("Adjuntos Multimedia", style = MaterialTheme.typography.titleMedium)
+                AttachmentRow()
+            }
         }
     }
 }
-
 
 // Barra Superior para la vista de Detalle
 @OptIn(ExperimentalMaterial3Api::class)

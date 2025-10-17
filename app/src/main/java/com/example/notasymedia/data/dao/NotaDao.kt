@@ -6,7 +6,7 @@ import com.example.notasymedia.data.entity.TipoNota
 import kotlinx.coroutines.flow.Flow
 
 @Dao // Marca como DAO para Room
-interface `NotaDao.kt` {
+interface NotaDao {
 
     // Insertar una nueva nota/tarea
     @Insert(onConflict = OnConflictStrategy.REPLACE)

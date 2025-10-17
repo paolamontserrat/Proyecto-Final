@@ -10,8 +10,5 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
     id("com.android.library") version "8.12.3" apply false
-}
-
-tasks.register("clean", Delete::class) {
-    delete(rootProject.buildDir)
+    id("com.google.devtools.ksp") version "2.0.21-1.0.26" apply false
 }

@@ -21,12 +21,13 @@ import androidx.compose.ui.graphics.Color
 @Composable
 fun DetailScreen(
     modifier: Modifier = Modifier,
-    itemId: Int, // El ID recibido
-    onNavigateToEdit: () -> Unit = {},
-    onNavigateBack: () -> Unit = {}
+    itemId: Int,
+    onNavigateToEdit: (Int) -> Unit = {},
+    onNavigateBack: () -> Unit = {},
+    onNavigateToDetail: (Int) -> Unit = {}
 ) {
     Scaffold(
-        topBar = { DetailToolbar(onNavigateToEdit, onNavigateBack) },
+        topBar = { DetailToolbar(itemId = itemId, onNavigateToEdit = onNavigateToEdit, onNavigateBack = onNavigateBack) },
         bottomBar = { TaskActionsBottomBar() }
     ) { paddingValues ->
         // Usamos Column y verticalScroll para que el contenido sea deslizable
@@ -98,17 +99,20 @@ fun DetailScreen(
 // Barra Superior para la vista de Detalle
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailToolbar(onNavigateToEdit: () -> Unit, onNavigateBack: () -> Unit) {
+fun DetailToolbar(
+    itemId: Int,  // itemId como parámetro
+    onNavigateToEdit: (Int) -> Unit,
+    onNavigateBack: () -> Unit
+) {
     TopAppBar(
-        title = { Text("") }, // El título generalmente es la propia nota en el contenido
+        title = { Text("") },
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
             }
         },
         actions = {
-            // RF-11: Botón de Edición
-            IconButton(onClick = onNavigateToEdit) {
+            IconButton(onClick = { onNavigateToEdit(itemId) }) {  // Pasar itemId
                 Icon(Icons.Filled.Edit, contentDescription = "Editar")
             }
         }

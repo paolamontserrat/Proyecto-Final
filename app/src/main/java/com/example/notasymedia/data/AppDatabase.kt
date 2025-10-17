@@ -6,6 +6,7 @@ import androidx.room.RoomDatabase
 import android.content.Context
 import com.example.notasymedia.data.dao.NotaDao
 import com.example.notasymedia.data.entity.NotaEntity
+import androidx.room.TypeConverters
 
 // Clase base de la BD Room
 @Database(
@@ -13,6 +14,7 @@ import com.example.notasymedia.data.entity.NotaEntity
     version = 1, // Version inicial
     exportSchema = false
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     // Abstrae el DAO

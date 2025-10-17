@@ -5,12 +5,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,9 +32,10 @@ import androidx.lifecycle.ViewModelProvider
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    onNavigateToForm: () -> Unit
+    onNavigateToForm: (Int) -> Unit,
+    onNavigateToDetail: (Int) -> Unit
 ) {
-    val context = LocalContext.current // Para pasar al ViewModel
+    val context = LocalContext.current
     val viewModel: NotaViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -42,7 +46,6 @@ fun MainScreen(
 
     var selectedTabIndex by remember { mutableStateOf(0) }
 
-    // Observa el Flow correcto basado en el tab (usa collectAsState para Flow)
     val listaNotas by produceState<List<NotaEntity>>(
         initialValue = emptyList(),
         key1 = selectedTabIndex,
@@ -52,14 +55,14 @@ fun MainScreen(
                 1 -> viewModel.notas.collect { value = it }
                 2 -> viewModel.tareas.collect { value = it }
                 3 -> viewModel.completadas.collect { value = it }
-                else -> {} // No hace nada
+                else -> {}
             }
         }
     )
 
     Scaffold(
         topBar = { AppToolbar() },
-        floatingActionButton = { CustomFab(onClick = onNavigateToForm) }
+        floatingActionButton = { CustomFab(onClick = { onNavigateToForm(-1) }) }
     ) { paddingValues ->
         Column(
             modifier = modifier
@@ -76,8 +79,10 @@ fun MainScreen(
                     TaskCard(
                         nota = nota,
                         modifier = Modifier.padding(bottom = 8.dp),
-                        onCompletar = { viewModel.marcarCompletada(nota.id, !nota.esCompletada) },
-                        onEliminar = { viewModel.eliminar(nota.id) }
+                        onAbrir = { onNavigateToDetail(it) },
+                        onEditar = { onNavigateToForm(it) },
+                        onCompletar = { viewModel.marcarCompletada(it.id, !it.esCompletada) },
+                        onEliminar = { viewModel.eliminar(it) }
                     )
                 }
             }
@@ -90,8 +95,10 @@ fun MainScreen(
 fun TaskCard(
     nota: NotaEntity,
     modifier: Modifier = Modifier,
-    onCompletar: () -> Unit = {},
-    onEliminar: () -> Unit = {}
+    onAbrir: (Int) -> Unit = {},
+    onEditar: (Int) -> Unit = {},
+    onCompletar: (NotaEntity) -> Unit = {},
+    onEliminar: (Int) -> Unit = {}
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -107,44 +114,36 @@ fun TaskCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = nota.titulo,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(text = nota.titulo, style = MaterialTheme.typography.titleMedium)
                 Text(
                     text = nota.descripcion.take(50) + if (nota.descripcion.length > 50) "..." else "",
                     style = MaterialTheme.typography.bodySmall
                 )
-                Text(
-                    text = "Tipo: ${nota.tipo.name}", // Usa .name para el enum
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Text(text = "Tipo: ${nota.tipo.name}", style = MaterialTheme.typography.bodySmall)
             }
-            // Icono si esta completada
-            if (nota.esCompletada) {
-                Icon(
-                    imageVector = Icons.Filled.Check,
-                    contentDescription = "Completada"
-                )
+            if (nota.esCompletada && nota.tipo == TipoNota.TAREA) {
+                Icon(imageVector = Icons.Filled.Check, contentDescription = "Completada")
             }
-            // Boton completar
-            IconButton(onClick = onCompletar) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = "Completar"
-                )
+            IconButton(onClick = { onAbrir(nota.id) }) {
+                Icon(Icons.Filled.OpenInFull, contentDescription = "Abrir")
             }
-            // Boton eliminar
-            IconButton(onClick = onEliminar) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = "Eliminar"
-                )
+            if (nota.tipo == TipoNota.TAREA) {
+                IconButton(onClick = { onCompletar(nota) }) {
+                    Icon(
+                        imageVector = if (nota.esCompletada) Icons.Filled.Undo else Icons.Filled.Check,
+                        contentDescription = if (nota.esCompletada) "Desmarcar" else "Completar"
+                    )
+                }
+            }
+            IconButton(onClick = { onEditar(nota.id) }) {
+                Icon(Icons.Filled.Edit, contentDescription = "Editar")
+            }
+            IconButton(onClick = { onEliminar(nota.id) }) {
+                Icon(Icons.Filled.Delete, contentDescription = "Eliminar")
             }
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -153,7 +152,7 @@ fun AppToolbar() {
         title = { Text("Notas y Tareas") },
         actions = {
             IconButton(onClick = { /* Buscar */ }) {
-                Icon(Icons.Filled.Search, contentDescription = "Buscar") // Agrega este import si no esta
+                Icon(Icons.Filled.Search, contentDescription = "Buscar")
             }
             IconButton(onClick = { /* Ordenar */ }) {
                 Icon(Icons.Filled.Sort, contentDescription = "Ordenar")
@@ -188,6 +187,6 @@ fun CustomFab(onClick: () -> Unit) {
 @Composable
 fun PreviewMainScreen() {
     NotasYMediaTheme {
-        MainScreen(onNavigateToForm = {})
+        MainScreen(onNavigateToForm = {}, onNavigateToDetail = {})
     }
 }

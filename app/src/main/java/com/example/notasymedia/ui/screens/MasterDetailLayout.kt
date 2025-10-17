@@ -9,6 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 
 
@@ -17,22 +19,25 @@ import com.example.notasymedia.ui.theme.NotasYMediaTheme
 fun MasterDetailLayout(
     modifier: Modifier = Modifier,
     selectedItemId: Int, // El ID de la nota/tarea seleccionada
-    onNavigateToEdit: () -> Unit // Acción para ir a EntryFormScreen
-){
+    onNavigateToEdit: (Int) -> Unit, // Acción para ir a EntryFormScreen
+    onNavigateToDetail: (Int) -> Unit, // Nueva función para navegar a detalle
+    navController: NavController // Añadimos navController como parámetro
+) {
     Row(modifier = modifier.fillMaxSize()) {
-
-        //Contiene la lista principal
+        // Contiene la lista principal
         Column(modifier = Modifier.weight(0.4f).fillMaxHeight()) {
-            MainScreen(modifier = Modifier.fillMaxSize(), onNavigateToForm = onNavigateToEdit)
+            MainScreen(
+                modifier = Modifier.fillMaxSize(),
+                onNavigateToForm = onNavigateToEdit,
+                onNavigateToDetail = onNavigateToDetail
+            )
         }
-
         // Separador visual
         Spacer(modifier = Modifier.width(1.dp).fillMaxHeight())
-
         Column(modifier = Modifier.weight(0.6f).fillMaxHeight()) {
             DetailScreen(
-                itemId = selectedItemId, // Debes pasar un ID válido
-                onNavigateToEdit = onNavigateToEdit
+                itemId = selectedItemId,
+                onNavigateToEdit = { onNavigateToEdit(selectedItemId)}
             )
         }
     }
@@ -55,15 +60,18 @@ fun DetailScreen() {
 
 
 @Preview(
-    // Simula el ancho típico de una tablet en modo horizontal
     widthDp = 1024,
     heightDp = 720,
-    showBackground = true,
+    showBackground = true
 )
 @Composable
 fun PreviewMasterDetailLayout() {
     NotasYMediaTheme {
-        MasterDetailLayout(selectedItemId = 101, onNavigateToEdit = {})
-
+        MasterDetailLayout(
+            selectedItemId = 101,
+            onNavigateToEdit = {},
+            onNavigateToDetail = {},
+            navController = rememberNavController() // Usamos un navController de prueba
+        )
     }
 }

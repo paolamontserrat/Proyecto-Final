@@ -1,50 +1,130 @@
 package com.example.notasymedia.ui.screens
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Camera
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.notasymedia.data.entity.NotaEntity
+import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
+import com.example.notasymedia.viewmodel.NotaViewModel
+import kotlinx.coroutines.launch
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EntryFormScreen(modifier: Modifier = Modifier, onNavigateBack: () -> Unit) {
-    // Estado para manejar si es NOTA o TAREA (RF-06)
+fun EntryFormScreen(
+    modifier: Modifier = Modifier,
+    itemId: Int = -1,  // -1 para nuevo, ID positivo para editar
+    onNavigateBack: () -> Unit
+) {
+    val context = LocalContext.current
+    val viewModel: NotaViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return NotaViewModel(context) as T
+            }
+        }
+    )
+
+    // Estados para campos
+    var titulo by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
     var isTask by remember { mutableStateOf(false) }
+    var fechaVencimiento by remember { mutableStateOf<Date?>(null) }
     var showMediaSheet by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    // Cargar datos si es edición
+    LaunchedEffect(itemId) {
+        if (itemId != -1) {
+            val nota = viewModel.obtenerPorId(itemId)
+            nota?.let {
+                titulo = it.titulo
+                descripcion = it.descripcion
+                isTask = it.tipo == TipoNota.TAREA
+                fechaVencimiento = it.fechaVencimiento
+            }
+        }
+    }
 
     Scaffold(
         topBar = { FormToolbar(isTask, onNavigateBack) },
+        bottomBar = {
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        val nota = NotaEntity(
+                            id = if (itemId != -1) itemId else 0,  // 0 para nuevo (Room auto-genera)
+                            titulo = titulo,
+                            descripcion = descripcion,
+                            tipo = if (isTask) TipoNota.TAREA else TipoNota.NOTA,
+                            fechaCreacion = Date(),
+                            fechaVencimiento = if (isTask) fechaVencimiento else null,
+                            esCompletada = false
+                        )
+                        if (itemId != -1) {
+                            viewModel.actualizar(nota)
+                        } else {
+                            viewModel.insertarNueva(titulo, descripcion, nota.tipo, fechaVencimiento)
+                        }
+                        onNavigateBack()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (itemId != -1) "Actualizar" else "Guardar")
+            }
+        }
     ) { paddingValues ->
-        Column(modifier = modifier
-            .padding(paddingValues)
-            .padding(16.dp)
-            .fillMaxSize()) { // Asegura que el Column sea deslizable si el contenido es mucho
-
-            // Selector Nota/Tarea
+        Column(
+            modifier = modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            // Selector Nota/Tarea (asumiendo ClassificationSwitch definido)
             ClassificationSwitch(isTask) { isTask = it }
 
             Spacer(Modifier.height(16.dp))
-            OutlinedTextField(value = "", onValueChange = {}, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(
+                value = titulo,
+                onValueChange = { titulo = it },
+                label = { Text("Título") },
+                modifier = Modifier.fillMaxWidth()
+            )
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(value = "", onValueChange = {}, label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(
+                value = descripcion,
+                onValueChange = { descripcion = it },
+                label = { Text("Descripción") },
+                modifier = Modifier.fillMaxWidth().height(120.dp),
+                maxLines = 5
+            )
 
             // Campos de Fecha/Hora (solo si es Tarea)
             if (isTask) {
                 Spacer(Modifier.height(16.dp))
-                // Placeholder para el selector de fecha/hora
-                Text("Fecha de Vencimiento: (Custom Date/Time Picker Composable)",
+                // Placeholder para selector de fecha/hora - puedes reemplazar con DatePickerDialog
+                Text("Fecha de Vencimiento: ${fechaVencimiento ?: "No seleccionada"}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary)
+                Button(onClick = { /* Implementar DatePicker aquí */ }) {
+                    Text("Seleccionar Fecha")
+                }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -54,7 +134,6 @@ fun EntryFormScreen(modifier: Modifier = Modifier, onNavigateBack: () -> Unit) {
             MediaTypeSelector(onAttachClicked = { showMediaSheet = true })
 
             Text("--- Placeholder: ScrollableRow de miniaturas (AttachmentRow) ---")
-
         }
     }
 
@@ -62,7 +141,6 @@ fun EntryFormScreen(modifier: Modifier = Modifier, onNavigateBack: () -> Unit) {
         MediaPickerBottomSheet(onDismiss = { showMediaSheet = false })
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,12 +150,6 @@ fun FormToolbar(isTask: Boolean, onNavigateBack: () -> Unit) {
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
-            }
-        },
-        actions = {
-            // Botón de Guardar
-            Button(onClick = { /* Guardar Datos */ }) {
-                Text("GUARDAR")
             }
         }
     )

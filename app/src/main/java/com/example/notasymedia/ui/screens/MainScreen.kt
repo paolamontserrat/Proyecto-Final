@@ -1,88 +1,161 @@
 package com.example.notasymedia.ui.screens
 
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.notasymedia.data.entity.NotaEntity
+import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-
+import com.example.notasymedia.viewmodel.NotaViewModel
+import androidx.lifecycle.ViewModelProvider
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier, onNavigateToForm: () -> Unit) {
-    var selectedTabIndex by remember { mutableStateOf(0) } // <-- Nuevo estado
+fun MainScreen(
+    modifier: Modifier = Modifier,
+    onNavigateToForm: () -> Unit
+) {
+    val context = LocalContext.current // Para pasar al ViewModel
+    val viewModel: NotaViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return NotaViewModel(context) as T
+            }
+        }
+    )
+
+    var selectedTabIndex by remember { mutableStateOf(0) }
+
+    // Observa el Flow correcto basado en el tab (usa collectAsState para Flow)
+    val listaNotas by produceState<List<NotaEntity>>(
+        initialValue = emptyList(),
+        key1 = selectedTabIndex,
+        producer = {
+            when (selectedTabIndex) {
+                0 -> viewModel.todasNotas.collect { value = it }
+                1 -> viewModel.notas.collect { value = it }
+                2 -> viewModel.tareas.collect { value = it }
+                3 -> viewModel.completadas.collect { value = it }
+                else -> {} // No hace nada
+            }
+        }
+    )
 
     Scaffold(
         topBar = { AppToolbar() },
-        floatingActionButton = { CustomFab(onClick = onNavigateToForm ) }
+        floatingActionButton = { CustomFab(onClick = onNavigateToForm) }
     ) { paddingValues ->
-        Column(modifier = modifier.padding(paddingValues).fillMaxSize()) {
+        Column(
+            modifier = modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            FilterTabs(
+                selectedTabIndex = selectedTabIndex,
+                onTabSelected = { selectedTabIndex = it }
+            )
 
-            // 2. Pasar el estado y el setter a FilterTabs
-            FilterTabs(selectedTabIndex = selectedTabIndex, onTabSelected = { selectedTabIndex = it })
-
-            // Simulación de la lista de notas/tareas
             LazyColumn(contentPadding = PaddingValues(16.dp)) {
-
-                // 3. Simular el filtrado de la lista:
-                val listCount = when (selectedTabIndex) {
-                    0 -> 5 // Todas: 5 elementos de ejemplo
-                    1 -> 3 // Notas: 3 elementos de ejemplo
-                    2 -> 2 // Tareas: 2 elementos de ejemplo
-                    3 -> 1 // Cumplidas: 1 elemento de ejemplo
-                    else -> 0
-                }
-
-                items(count = listCount) {
-                    TaskCard(modifier = Modifier.padding(bottom = 8.dp))
+                items(listaNotas) { nota ->
+                    TaskCard(
+                        nota = nota,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        onCompletar = { viewModel.marcarCompletada(nota.id, !nota.esCompletada) },
+                        onEliminar = { viewModel.eliminar(nota.id) }
+                    )
                 }
             }
         }
     }
 }
 
-
+// Card con datos reales de NotaEntity
 @Composable
-fun TaskCard(modifier: Modifier = Modifier) {
+fun TaskCard(
+    nota: NotaEntity,
+    modifier: Modifier = Modifier,
+    onCompletar: () -> Unit = {},
+    onEliminar: () -> Unit = {}
+) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(70.dp),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if (nota.esCompletada) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Tarea/Nota de Ejemplo",
-                style = MaterialTheme.typography.titleMedium
-            )
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = nota.titulo,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = nota.descripcion.take(50) + if (nota.descripcion.length > 50) "..." else "",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Text(
+                    text = "Tipo: ${nota.tipo.name}", // Usa .name para el enum
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            // Icono si esta completada
+            if (nota.esCompletada) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = "Completada"
+                )
+            }
+            // Boton completar
+            IconButton(onClick = onCompletar) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = "Completar"
+                )
+            }
+            // Boton eliminar
+            IconButton(onClick = onEliminar) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Eliminar"
+                )
+            }
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppToolbar() {
-    CenterAlignedTopAppBar (
+    CenterAlignedTopAppBar(
         title = { Text("Notas y Tareas") },
         actions = {
-            // Búsqueda
-            IconButton(onClick = { /* Iniciar Búsqueda */ }) {
-                Icon(Icons.Filled.Search, contentDescription = "Buscar")
+            IconButton(onClick = { /* Buscar */ }) {
+                Icon(Icons.Filled.Search, contentDescription = "Buscar") // Agrega este import si no esta
             }
-            // Ordenamiento
-            IconButton(onClick = { /* Mostrar Opciones de Orden */ }) {
+            IconButton(onClick = { /* Ordenar */ }) {
                 Icon(Icons.Filled.Sort, contentDescription = "Ordenar")
             }
         }

@@ -1,19 +1,16 @@
 package com.example.notasymedia.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.OpenInFull
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,6 +26,13 @@ import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import com.example.notasymedia.viewmodel.NotaViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Text
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
 
 @Composable
 fun MainScreen(
@@ -62,7 +66,7 @@ fun MainScreen(
     )
 
     Scaffold(
-        topBar = { AppToolbar() },
+        topBar = { AppToolbar(title = "Notas y Tareas") },
         floatingActionButton = { CustomFab(onClick = { onNavigateToForm(-1) }) }
     ) { paddingValues ->
         Column(
@@ -139,15 +143,33 @@ fun TaskCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppToolbar() {
-    CenterAlignedTopAppBar(
-        title = { Text("Notas y Tareas") },
+fun AppToolbar(
+    title: String,
+    modifier: Modifier = Modifier
+) {
+    val containerColor = MaterialTheme.colorScheme.primary
+    val contentColor = MaterialTheme.colorScheme.onPrimary
+
+    TopAppBar(
+        modifier = modifier,
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = containerColor,
+            titleContentColor = contentColor,
+            actionIconContentColor = contentColor,
+            navigationIconContentColor = contentColor
+        ),
         actions = {
-            IconButton(onClick = { /* Buscar */ }) {
-                Icon(Icons.Filled.Search, contentDescription = "Buscar")
+            IconButton(onClick = { /* Acción de búsqueda */ }) {
+                Icon(Icons.Default.Search, contentDescription = "Buscar")
             }
-            IconButton(onClick = { /* Ordenar */ }) {
-                Icon(Icons.Filled.Sort, contentDescription = "Ordenar")
+            IconButton(onClick = { /* Acción de menú */ }) {
+                Icon(Icons.Default.Menu, contentDescription = "Menú")
             }
         }
     )

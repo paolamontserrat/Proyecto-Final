@@ -120,12 +120,26 @@ fun DetailScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailToolbar(
-    itemId: Int,  // itemId como parámetro
+    itemId: Int,
     onNavigateToEdit: (Int) -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    val containerColor = MaterialTheme.colorScheme.primary
+    val contentColor = MaterialTheme.colorScheme.onPrimary
+
     TopAppBar(
-        title = { Text("") },
+        title = {
+            Text(
+                text = "",
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = containerColor,
+            titleContentColor = contentColor,
+            navigationIconContentColor = contentColor, // Flecha de regreso (blanca)
+            actionIconContentColor = contentColor // Ícono de Edición (blanco)
+        ),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")

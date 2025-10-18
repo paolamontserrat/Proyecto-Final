@@ -180,11 +180,24 @@ fun EntryFormScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormToolbar(isTask: Boolean, onNavigateBack: () -> Unit) {
+    val containerColor = MaterialTheme.colorScheme.primary
+    val contentColor = MaterialTheme.colorScheme.onPrimary
+
     CenterAlignedTopAppBar (
-        title = { Text(if (isTask) "Nueva Tarea" else "Nueva Nota") },
+        title = {
+            Text(
+                text = if (isTask) "Nueva Tarea" else "Nueva Nota",
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = containerColor,
+            titleContentColor = contentColor,
+            navigationIconContentColor = contentColor
+        ),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-            Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+                Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
             }
         }
     )

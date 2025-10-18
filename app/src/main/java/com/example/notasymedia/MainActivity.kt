@@ -50,10 +50,13 @@ fun AppContent(widthSizeClass: WindowWidthSizeClass) {
     val navController = rememberNavController()
     if (widthSizeClass == WindowWidthSizeClass.Expanded) {
         MasterDetailLayout(
-            selectedItemId = -1,
-            onNavigateToEdit = { navController.navigate("entry_form/$id") },
-            onNavigateToDetail = { id -> navController.navigate("detail/$id") },
-            navController = navController
+            onNavigateToEdit = { id ->
+                if (id == -1) {
+                    navController.navigate("entry_form/-1")
+                } else {
+                    navController.navigate("entry_form/$id")
+                }
+            }
         )
     } else {
         // 2. Definir las Rutas

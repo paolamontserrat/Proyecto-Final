@@ -5,6 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
+// Paleta de Colores Clara (LightColorPalette)
 private val LightColorScheme = lightColorScheme(
     primary = Color(0xFFE054F3),       // Botones y Elementos Activos
     secondary = Color(0xFFA278A6),    // Clasificadores y Filtros (RF-06)
@@ -16,16 +17,16 @@ private val LightColorScheme = lightColorScheme(
     onBackground = Color(0xFF1A1C1A)
 )
 
+// Paleta de Colores Oscura (DarkColorPalette)
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF63DDAB),
     secondary = Color(0xFFB4CCBB),
     tertiary = Color(0xFFDEC598),
-    background = Color(0xFF1A1C1A),
-    surface = Color(0xFF232824),
+    background = Color(0xFF1A1C1A),   // Fondo Oscuro
+    surface = Color(0xFF232824),      // Fondo de Cards/Tarjetas Oscuro
     error = Color(0xFFBA1A1A),
     onPrimary = Color(0xFF003820),
     onBackground = Color(0xFFE2E3DF)
-    /* Otros colores... */
 )
 
 @Composable
@@ -38,11 +39,10 @@ fun NotasYMediaTheme(
         else -> LightColorScheme
     }
 
-
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
-        shapes = Shapes,
+        typography = Typography, // Usa la tipografía definida
+        shapes = Shapes,         // Usa las formas definidas
         content = content
     )
 }

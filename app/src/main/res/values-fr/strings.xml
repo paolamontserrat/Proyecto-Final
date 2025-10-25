@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Notes et Médias</string>
+
+    <string name="title_notas_tareas">Notes et tâches</string>
+    <string name="title_nueva_nota">Nouvelle note</string>
+    <string name="title_nueva_tarea">Nouvelle tâche</string>
+    <string name="title_selecciona_fuente">Sélectionner la source média</string>
+    <string name="label_adjuntar_multimedia">Joindre média (RF-02)</string>
+    <string name="label_adjuntos_multimedia">Pièces jointes média</string>
+
+    <string name="label_titulo">Titre</string>
+    <string name="label_descripcion">Description</string>
+    <string name="label_nota">Note</string>
+    <string name="label_tarea">Tâche</string>
+    <string name="label_tipo">Type: %s</string>
+    <string name="label_fecha_vencimiento">Date d\'échéance: %s</string>
+    <string name="label_archivo">Fichier</string>
+    <string name="label_vence">Expire le: %s</string>
+
+    <string name="tab_todas">Toutes</string>
+    <string name="tab_notas">Notes</string>
+    <string name="tab_tareas">Tâches</string>
+    <string name="tab_cumplidas">Complétées</string>
+
+    <string name="action_buscar">Rechercher</string>
+    <string name="action_menu">Menu</string>
+    <string name="action_volver">Retour</string>
+    <string name="action_editar">Modifier</string>
+    <string name="action_crear_nuevo">Créer nouveau</string>
+    <string name="action_eliminar">Supprimer</string>
+    <string name="action_completar">Compléter</string>
+    <string name="action_desmarcar">Démarquer</string>
+    <string name="action_eliminar_tarea">Supprimer la tâche</string>
+    <string name="action_posponer_tarea">Reporter la tâche</string>
+
+    <string name="button_guardar">Enregistrer</string>
+    <string name="button_actualizar">Mettre à jour</string>
+    <string name="button_seleccionar_fecha">Sélectionner la date</string>
+    <string name="button_ok">OK</string>
+    <string name="button_cancelar">Annuler</string>
+
+    <string name="button_tomar_foto_video">Prendre Photo/Vidéo</string>
+    <string name="button_grabar_audio">Enregistrer Audio</string>
+    <string name="button_seleccionar_archivo_bs">Sélectionner Fichier</string>
+
+    <string name="action_adjunto_foto">Photo/Vidéo</string>
+    <string name="action_adjunto_audio">Enregistrer Audio</string>
+    <string name="action_adjunto_archivo">Sélectionner Fichier</string>
+    <string name="action_adjunto_descripcion">Écrire une description</string>
+    <string name="action_adjunto_generico">Pièce jointe</string>
+
+    <string name="status_completada">Complétée</string>
+    <string name="status_no_seleccionada">Non sélectionnée</string>
+    <string name="status_cargando_nota">Chargement de la note...</string>
+    <string name="status_pendiente">En attente</string>
+    <string name="status_completada_fecha">Complétée le %s</string>
+
+    <string name="placeholder_detail_title">Sélectionnez une note ou une tâche</string>
+    <string name="placeholder_detail_subtitle">Pour voir les détails dans ce panneau</string>
+    <string name="placeholder_miniaturas">--- Espace réservé: Ligne défilante de miniatures (AttachmentRow) ---</string>
+
+</resources>

@@ -1,7 +1,5 @@
 package com.example.notasymedia.ui.screens
 
-
-
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -10,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,12 +22,14 @@ import androidx.compose.ui.unit.dp
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource // <-- ¡IMPORTANTE!
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.viewmodel.NotaViewModel
+import com.example.notasymedia.R // <-- ¡IMPORTANTE!
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -39,7 +40,7 @@ fun DetailScreen(
     itemId: Int,
     onNavigateToEdit: (Int) -> Unit = {},
     onNavigateBack: () -> Unit = {},
-    onNavigateToDetail: (Int) -> Unit = {}
+    onNavigateToDetail: (Int) -> Unit = {},
 ) {
     val context = LocalContext.current
     val viewModel: NotaViewModel = viewModel(
@@ -54,13 +55,13 @@ fun DetailScreen(
 
     LaunchedEffect(itemId) {
         val loadedNota = viewModel.obtenerPorId(itemId)
-        Log.d("DetailScreen", "Cargando nota con ID $itemId: $loadedNota")  // Log para depuración
+        Log.d("DetailScreen", "Cargando nota con ID $itemId: $loadedNota")
         nota = loadedNota
     }
 
     Scaffold(
         topBar = { DetailToolbar(itemId = itemId, onNavigateToEdit = onNavigateToEdit, onNavigateBack = onNavigateBack) },
-        bottomBar = { TaskActionsBottomBar() }
+        bottomBar = { if (nota?.tipo == TipoNota.TAREA) TaskActionsBottomBar() } // Solo mostrar si es tarea
     ) { paddingValues ->
         Column(
             modifier = modifier
@@ -70,7 +71,8 @@ fun DetailScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             if (nota == null) {
-                Text("Cargando nota...", style = MaterialTheme.typography.bodyMedium)
+                // 1. Localización: "Cargando nota..."
+                Text(stringResource(R.string.status_cargando_nota), style = MaterialTheme.typography.bodyMedium)
             } else {
                 Text(
                     text = nota!!.titulo,
@@ -82,18 +84,31 @@ fun DetailScreen(
                     if (nota!!.tipo == TipoNota.TAREA) {
                         Icon(
                             Icons.Filled.CheckCircle,
-                            contentDescription = "Completado",
+                            // 2. Localización: contentDescription
+                            contentDescription = stringResource(R.string.status_completada),
                             tint = if (nota!!.esCompletada) Color.Green else Color.Gray,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = if (nota!!.esCompletada) "Completada el ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(nota!!.fechaCreacion)}" else "Pendiente",
+                            // 3. Localización: Estado de completado
+                            text = if (nota!!.esCompletada) {
+                                stringResource(
+                                    R.string.status_completada_fecha,
+                                    SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(nota!!.fechaCreacion)
+                                )
+                            } else {
+                                stringResource(R.string.status_pendiente)
+                            },
                             style = MaterialTheme.typography.bodyMedium
                         )
                         if (nota!!.fechaVencimiento != null) {
                             Text(
-                                text = "Vence: ${SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(nota!!.fechaVencimiento!!)}",
+                                // 4. Localización: Fecha de vencimiento
+                                text = stringResource(
+                                    R.string.label_vence,
+                                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(nota!!.fechaVencimiento!!)
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(start = 8.dp)
                             )
@@ -109,7 +124,8 @@ fun DetailScreen(
                 )
 
                 Spacer(Modifier.height(24.dp))
-                Text("Adjuntos Multimedia", style = MaterialTheme.typography.titleMedium)
+                // 5. Localización: Encabezado "Adjuntos Multimedia"
+                Text(stringResource(R.string.label_adjuntos_multimedia), style = MaterialTheme.typography.titleMedium)
                 AttachmentRow()
             }
         }
@@ -137,17 +153,19 @@ fun DetailToolbar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = containerColor,
             titleContentColor = contentColor,
-            navigationIconContentColor = contentColor, // Flecha de regreso (blanca)
-            actionIconContentColor = contentColor // Ícono de Edición (blanco)
+            navigationIconContentColor = contentColor,
+            actionIconContentColor = contentColor
         ),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+                // 6. Localización: contentDescription "Volver"
+                Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.action_volver))
             }
         },
         actions = {
-            IconButton(onClick = { onNavigateToEdit(itemId) }) {  // Pasar itemId
-                Icon(Icons.Filled.Edit, contentDescription = "Editar")
+            IconButton(onClick = { onNavigateToEdit(itemId) }) {
+                // 7. Localización: contentDescription "Editar"
+                Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.action_editar))
             }
         }
     )
@@ -162,9 +180,10 @@ fun TaskActionsBottomBar() {
             Button(onClick = { /* Posponer */ },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 modifier = Modifier.weight(1f)) {
-                Icon(Icons.Filled.Timer, contentDescription = "Posponer Tarea")
+                // 8. Localización: contentDescription y texto
+                Icon(Icons.Filled.Timer, contentDescription = stringResource(R.string.action_posponer_tarea))
                 Spacer(Modifier.width(4.dp))
-                Text("Posponer Tarea")
+                Text(stringResource(R.string.action_posponer_tarea))
             }
 
             Spacer(Modifier.width(8.dp))
@@ -173,9 +192,10 @@ fun TaskActionsBottomBar() {
             Button(onClick = { /* Eliminar */ },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
                 modifier = Modifier.weight(1f)) {
-                Icon(Icons.Filled.Delete, contentDescription = "Eliminar Tarea")
+                // 9. Localización: contentDescription y texto
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_eliminar_tarea))
                 Spacer(Modifier.width(4.dp))
-                Text("Eliminar Tarea")
+                Text(stringResource(R.string.action_eliminar_tarea))
             }
         },
         modifier = Modifier.fillMaxWidth().height(64.dp)
@@ -185,7 +205,6 @@ fun TaskActionsBottomBar() {
 // Fila de miniaturas de adjuntos (RF-12)
 @Composable
 fun AttachmentRow() {
-    // LazyRow permite desplazamiento horizontal
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(3) { // 3 miniaturas de placeholder
             AttachmentThumbnail()
@@ -198,25 +217,28 @@ fun AttachmentRow() {
 fun AttachmentThumbnail() {
     Surface(
         modifier = Modifier.size(100.dp),
-        shape = MaterialTheme.shapes.medium, // Usa la forma que definiste en Shapes.kt
+        shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(Icons.Filled.Image, contentDescription = "Adjunto", modifier = Modifier.size(40.dp))
-            Text("Archivo", style = MaterialTheme.typography.bodySmall)
+            // 10. Localización: contentDescription "Adjunto"
+            Icon(Icons.Filled.Image, contentDescription = stringResource(R.string.action_adjunto_generico), modifier = Modifier.size(40.dp))
+            // 11. Localización: Texto "Archivo"
+            Text(stringResource(R.string.label_archivo), style = MaterialTheme.typography.bodySmall)
         }
     }
 }
 
 
-
-@Preview(showBackground = true, name = "Detail Screen Preview")
+@Preview(showBackground = true, locale = "en")
 @Composable
 fun PreviewDetailScreen() {
     NotasYMediaTheme {
-        DetailScreen(itemId = 42)
+        DetailScreen(itemId = 42
+
+        )
     }
 }

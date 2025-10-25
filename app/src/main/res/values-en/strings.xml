@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Notes and Media</string>
+
+    <string name="title_notas_tareas">Notes and Tasks</string>
+    <string name="title_nueva_nota">New Note</string>
+    <string name="title_nueva_tarea">New Task</string>
+    <string name="title_selecciona_fuente">Select Media Source</string>
+    <string name="label_adjuntar_multimedia">Attach Media (RF-02)</string>
+    <string name="label_adjuntos_multimedia">Media Attachments</string>
+
+    <string name="label_titulo">Title</string>
+    <string name="label_descripcion">Description</string>
+    <string name="label_nota">Note</string>
+    <string name="label_tarea">Task</string>
+    <string name="label_tipo">Type: %s</string>
+    <string name="label_fecha_vencimiento">Due Date: %s</string>
+    <string name="label_archivo">File</string>
+    <string name="label_vence">Expires: %s</string>
+
+    <string name="tab_todas">All</string>
+    <string name="tab_notas">Notes</string>
+    <string name="tab_tareas">Tasks</string>
+    <string name="tab_cumplidas">Completed</string>
+
+    <string name="action_buscar">Search</string>
+    <string name="action_menu">Menu</string>
+    <string name="action_volver">Back</string>
+    <string name="action_editar">Edit</string>
+    <string name="action_crear_nuevo">Create New</string>
+    <string name="action_eliminar">Delete</string>
+    <string name="action_completar">Complete</string>
+    <string name="action_desmarcar">Unmark</string>
+    <string name="action_eliminar_tarea">Delete Task</string>
+    <string name="action_posponer_tarea">Snooze Task</string>
+
+    <string name="button_guardar">Save</string>
+    <string name="button_actualizar">Update</string>
+    <string name="button_seleccionar_fecha">Select Date</string>
+    <string name="button_ok">OK</string>
+    <string name="button_cancelar">Cancel</string>
+
+    <string name="button_tomar_foto_video">Take Photo/Video</string>
+    <string name="button_grabar_audio">Record Audio</string>
+    <string name="button_seleccionar_archivo_bs">Select File</string>
+
+    <string name="action_adjunto_foto">Photo/Video</string>
+    <string name="action_adjunto_audio">Record Audio</string>
+    <string name="action_adjunto_archivo">Select File</string>
+    <string name="action_adjunto_descripcion">Write description</string>
+    <string name="action_adjunto_generico">Attachment</string>
+
+    <string name="status_completada">Completed</string>
+    <string name="status_no_seleccionada">Not selected</string>
+    <string name="status_cargando_nota">Loading note...</string>
+    <string name="status_pendiente">Pending</string>
+    <string name="status_completada_fecha">Completed on %s</string>
+
+    <string name="placeholder_detail_title">Select a Note or Task</string>
+    <string name="placeholder_detail_subtitle">To see the detail in this panel</string>
+    <string name="placeholder_miniaturas">--- Placeholder: ScrollableRow of thumbnails (AttachmentRow) ---</string>
+
+</resources>

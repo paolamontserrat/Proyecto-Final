@@ -5,13 +5,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.* // Importar 'remember' y 'mutableStateOf' aquí
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.res.stringResource // <-- ¡IMPORTANTE para localización!
+import com.example.notasymedia.R // <-- ¡IMPORTANTE para recursos!
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 
 
@@ -25,10 +25,8 @@ import com.example.notasymedia.ui.theme.NotasYMediaTheme
 fun MasterDetailLayout(
     modifier: Modifier = Modifier,
     onNavigateToEdit: (Int) -> Unit // Acción para ir a EntryFormScreen
-    // Eliminamos selectedItemId y navController ya que el estado se maneja internamente
 ) {
     // 💡 Paso clave: El estado de la nota/tarea seleccionada.
-    // Inicializamos a -1 (sin selección)
     var currentSelectedItem by remember { mutableStateOf(-1) }
 
     Row(modifier = modifier.fillMaxSize()) {
@@ -38,7 +36,6 @@ fun MasterDetailLayout(
             MainScreen(
                 modifier = Modifier.fillMaxSize(),
                 onNavigateToForm = onNavigateToEdit,
-                // 💡 Al hacer clic en una TaskCard, actualizamos el estado local.
                 onNavigateToDetail = { id -> currentSelectedItem = id }
             )
         }
@@ -48,21 +45,19 @@ fun MasterDetailLayout(
             modifier = Modifier
                 .width(1.dp)
                 .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.outlineVariant)
+                // APLICACIÓN DEL COLOR ROSA/MORADO VIBRANTE (primary)
+                .background(MaterialTheme.colorScheme.primary)
         )
 
         // ========= 2. PANEL DETALLE (DetailScreen o Placeholder) =========
         Column(modifier = Modifier.weight(0.6f).fillMaxHeight()) {
             if (currentSelectedItem != -1) {
-                // Muestra la DetailScreen real, utilizando el ID del estado.
-                // Se asume que esta DetailScreen acepta itemId y onNavigateToEdit.
                 DetailScreen(
                     itemId = currentSelectedItem,
                     onNavigateToEdit = { onNavigateToEdit(currentSelectedItem) },
-                    onNavigateBack = { currentSelectedItem = -1 } // Opcional: permite deseleccionar
+                    onNavigateBack = { currentSelectedItem = -1 }
                 )
             } else {
-                // Muestra un mensaje de marcador de posición si no hay nada seleccionado.
                 PlaceholderDetailScreen()
             }
         }
@@ -81,17 +76,18 @@ fun PlaceholderDetailScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("Selecciona una Nota o Tarea", style = MaterialTheme.typography.headlineSmall)
-            Text("Para ver el detalle en este panel")
+            Text(
+                // Localización del título
+                stringResource(R.string.placeholder_detail_title),
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Text(
+                // Localización del subtítulo
+                stringResource(R.string.placeholder_detail_subtitle)
+            )
         }
     }
 }
-
-// ⚠️ NOTA IMPORTANTE: La función DetailScreen duplicada que tenías con parámetros vacíos
-// ha sido reemplazada por la función PlaceholderDetailScreen.
-// Debes asegurarte de que la DetailScreen real (con la lógica de carga de datos)
-// esté disponible y tenga esta firma:
-// @Composable fun DetailScreen(itemId: Int, onNavigateToEdit: (Int) -> Unit, onNavigateBack: () -> Unit)
 
 
 @Preview(
@@ -104,7 +100,6 @@ fun PreviewMasterDetailLayout() {
     NotasYMediaTheme {
         MasterDetailLayout(
             onNavigateToEdit = {}
-            // Ya no se necesitan selectedItemId, onNavigateToDetail ni navController aquí
         )
     }
 }

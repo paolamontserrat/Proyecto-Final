@@ -24,13 +24,17 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+
+import androidx.compose.ui.res.stringResource // <-- ¡IMPORTANTE!
+import com.example.notasymedia.R // <-- ¡IMPORTANTE!
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntryFormScreen(
     modifier: Modifier = Modifier,
     itemId: Int = -1, // -1 para nuevo, ID positivo para editar
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
 ) {
     val context = LocalContext.current
     val viewModel: NotaViewModel = viewModel(
@@ -41,7 +45,8 @@ fun EntryFormScreen(
         }
     )
 
-    // Estados para campos
+    // ... (Estados y lógica de carga sin cambios)
+
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var isTask by remember { mutableStateOf(false) }
@@ -51,11 +56,10 @@ fun EntryFormScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    // Cargar datos si es edición
     LaunchedEffect(itemId) {
         if (itemId != -1) {
             val nota = viewModel.obtenerPorId(itemId)
-            Log.d("EntryFormScreen", "Cargando nota con ID $itemId: $nota")  // Log para depuración
+            Log.d("EntryFormScreen", "Cargando nota con ID $itemId: $nota")
             nota?.let {
                 titulo = it.titulo
                 descripcion = it.descripcion
@@ -78,7 +82,7 @@ fun EntryFormScreen(
                 onClick = {
                     coroutineScope.launch {
                         val nota = NotaEntity(
-                            id = if (itemId != -1) itemId else 0, // 0 para nuevo (Room auto-genera)
+                            id = if (itemId != -1) itemId else 0,
                             titulo = titulo,
                             descripcion = descripcion,
                             tipo = if (isTask) TipoNota.TAREA else TipoNota.NOTA,
@@ -96,7 +100,12 @@ fun EntryFormScreen(
                 },
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
-                Text(if (itemId != -1) "Actualizar" else "Guardar")
+                // 1. Localización del botón "Guardar" / "Actualizar"
+                Text(
+                    stringResource(
+                        if (itemId != -1) R.string.button_actualizar else R.string.button_guardar
+                    )
+                )
             }
         }
     ) { paddingValues ->
@@ -113,14 +122,16 @@ fun EntryFormScreen(
             OutlinedTextField(
                 value = titulo,
                 onValueChange = { titulo = it },
-                label = { Text("Título") },
+                // 2. Localización de la etiqueta "Título"
+                label = { Text(stringResource(R.string.label_titulo)) },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = descripcion,
                 onValueChange = { descripcion = it },
-                label = { Text("Descripción") },
+                // 3. Localización de la etiqueta "Descripción"
+                label = { Text(stringResource(R.string.label_descripcion)) },
                 modifier = Modifier.fillMaxWidth().height(120.dp),
                 maxLines = 5
             )
@@ -130,21 +141,28 @@ fun EntryFormScreen(
                 val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Fecha de Vencimiento: ${fechaVencimiento?.let { formatter.format(it) } ?: "No seleccionada"}",
+                        // 4. Localización del texto de "Fecha de Vencimiento"
+                        text = stringResource(
+                            R.string.label_fecha_vencimiento,
+                            fechaVencimiento?.let { formatter.format(it) } ?: stringResource(R.string.status_no_seleccionada)
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)
                     )
                     Button(onClick = { showDatePicker = true }) {
-                        Text("Seleccionar Fecha")
+                        // 5. Localización del botón "Seleccionar Fecha"
+                        Text(stringResource(R.string.button_seleccionar_fecha))
                     }
                 }
             }
 
             Spacer(Modifier.height(24.dp))
-            Text("Adjuntar Multimedia (RF-02)", style = MaterialTheme.typography.titleMedium)
+            // 6. Localización del encabezado "Adjuntar Multimedia"
+            Text(stringResource(R.string.label_adjuntar_multimedia), style = MaterialTheme.typography.titleMedium)
             MediaTypeSelector(onAttachClicked = { showMediaSheet = true })
 
-            Text("--- Placeholder: ScrollableRow de miniaturas (AttachmentRow) ---")
+            // 7. Localización del placeholder
+            Text(stringResource(R.string.placeholder_miniaturas))
         }
     }
 
@@ -159,12 +177,14 @@ fun EntryFormScreen(
                     }
                     showDatePicker = false
                 }) {
-                    Text("OK")
+                    // 8. Localización del botón "OK"
+                    Text(stringResource(R.string.button_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancelar")
+                    // 9. Localización del botón "Cancelar"
+                    Text(stringResource(R.string.button_cancelar))
                 }
             }
         ) {
@@ -186,7 +206,10 @@ fun FormToolbar(isTask: Boolean, onNavigateBack: () -> Unit) {
     CenterAlignedTopAppBar (
         title = {
             Text(
-                text = if (isTask) "Nueva Tarea" else "Nueva Nota",
+                // 10. Localización condicional del título "Nueva Tarea" / "Nueva Nota"
+                text = stringResource(
+                    if (isTask) R.string.title_nueva_tarea else R.string.title_nueva_nota
+                ),
                 style = MaterialTheme.typography.titleLarge
             )
         },
@@ -197,7 +220,8 @@ fun FormToolbar(isTask: Boolean, onNavigateBack: () -> Unit) {
         ),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+                // 11. Localización del contentDescription "Volver"
+                Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.action_volver))
             }
         }
     )
@@ -218,7 +242,8 @@ fun ClassificationSwitch(isTask: Boolean, onToggle: (Boolean) -> Unit) {
                 containerColor = if (!isTask) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
             )
         ) {
-            Text("Nota")
+            // 12. Localización del texto "Nota"
+            Text(stringResource(R.string.label_nota))
         }
         Spacer(Modifier.width(8.dp))
         // Botón TAREA
@@ -228,7 +253,8 @@ fun ClassificationSwitch(isTask: Boolean, onToggle: (Boolean) -> Unit) {
                 containerColor = if (isTask) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
             )
         ) {
-            Text("Tarea")
+            // 13. Localización del texto "Tarea"
+            Text(stringResource(R.string.label_tarea))
         }
     }
 }
@@ -240,32 +266,36 @@ fun MediaTypeSelector(onAttachClicked: () -> Unit) {
         // FOTO / VIDEO
         IconButton(onClick = onAttachClicked) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Filled.Camera, contentDescription = "Foto/Video", modifier = Modifier.size(32.dp))
-                Text("Foto/Video", style = MaterialTheme.typography.bodySmall)
+                // 14. Localización de contentDescription y texto "Foto/Video"
+                Icon(Icons.Filled.Camera, contentDescription = stringResource(R.string.action_adjunto_foto), modifier = Modifier.size(32.dp))
+                Text(stringResource(R.string.action_adjunto_foto), style = MaterialTheme.typography.bodySmall)
             }
         }
 
         // GRABAR AUDIO
         IconButton(onClick = onAttachClicked) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Filled.Mic, contentDescription = "Grabar Audio", modifier = Modifier.size(32.dp))
-                Text("Grabar Audio", style = MaterialTheme.typography.bodySmall)
+                // 15. Localización de contentDescription y texto "Grabar Audio"
+                Icon(Icons.Filled.Mic, contentDescription = stringResource(R.string.action_adjunto_audio), modifier = Modifier.size(32.dp))
+                Text(stringResource(R.string.action_adjunto_audio), style = MaterialTheme.typography.bodySmall)
             }
         }
 
         // ELECCIONAR ARCHIVO
         IconButton(onClick = onAttachClicked) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Filled.Folder, contentDescription = "Seleccionar Archivo", modifier = Modifier.size(32.dp))
-                Text("Seleccionar Archivo", style = MaterialTheme.typography.bodySmall)
+                // 16. Localización de contentDescription y texto "Seleccionar Archivo"
+                Icon(Icons.Filled.Folder, contentDescription = stringResource(R.string.action_adjunto_archivo), modifier = Modifier.size(32.dp))
+                Text(stringResource(R.string.action_adjunto_archivo), style = MaterialTheme.typography.bodySmall)
             }
         }
 
         // ESCRIBIR DESCRIPCIÓN
         IconButton(onClick = {}) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Filled.Edit, contentDescription = "Escribir Descripción", modifier = Modifier.size(32.dp))
-                Text("Escribir descripción", style = MaterialTheme.typography.bodySmall)
+                // 17. Localización de contentDescription y texto "Escribir descripción"
+                Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.action_adjunto_descripcion), modifier = Modifier.size(32.dp))
+                Text(stringResource(R.string.action_adjunto_descripcion), style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -276,23 +306,26 @@ fun MediaTypeSelector(onAttachClicked: () -> Unit) {
 fun MediaPickerBottomSheet(onDismiss: () -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Selecciona Fuente Multimedia", style = MaterialTheme.typography.titleLarge)
+            // 18. Localización del título "Selecciona Fuente Multimedia"
+            Text(stringResource(R.string.title_selecciona_fuente), style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
 
-            // Opciones de los Botones grandes para Usabilidad
-            Button(onClick = { /* Tomar Foto/Video */ }, modifier = Modifier.fillMaxWidth()) { Text("Tomar Foto/Video") }
+            // 19. Localización de los botones grandes
+            Button(onClick = { /* Tomar Foto/Video */ }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.button_tomar_foto_video)) }
             Spacer(Modifier.height(8.dp))
-            Button(onClick = { /* Grabar Audio */ }, modifier = Modifier.fillMaxWidth()) { Text("Grabar Audio") }
+            Button(onClick = { /* Grabar Audio */ }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.button_grabar_audio)) }
             Spacer(Modifier.height(8.dp))
-            Button(onClick = { /* Seleccionar Archivo */ }, modifier = Modifier.fillMaxWidth()) { Text("Seleccionar Archivo") }
+            Button(onClick = { /* Seleccionar Archivo */ }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.button_seleccionar_archivo_bs)) }
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, locale = "de")
 @Composable
 fun PreviewEntryFormScreen() {
     NotasYMediaTheme {
-        EntryFormScreen(onNavigateBack = {})
+        EntryFormScreen(onNavigateBack = {}
+
+        )
     }
 }

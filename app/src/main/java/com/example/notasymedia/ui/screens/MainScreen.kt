@@ -1,6 +1,5 @@
 package com.example.notasymedia.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,19 +25,16 @@ import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import com.example.notasymedia.viewmodel.NotaViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.Text
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.example.notasymedia.R
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
     onNavigateToForm: (Int) -> Unit,
-    onNavigateToDetail: (Int) -> Unit
+    onNavigateToDetail: (Int) -> Unit,
+
 ) {
     val context = LocalContext.current
     val viewModel: NotaViewModel = viewModel(
@@ -66,7 +62,9 @@ fun MainScreen(
     )
 
     Scaffold(
-        topBar = { AppToolbar(title = "Notas y Tareas") },
+        // 1. AppToolbar: Le pasamos el ID del recurso
+        topBar = { AppToolbar(titleResId = R.string.title_notas_tareas) },
+        // 2. CustomFab: No se cambia aquí, se cambia en su definición
         floatingActionButton = { CustomFab(onClick = { onNavigateToForm(-1) }) }
     ) { paddingValues ->
         Column(
@@ -105,7 +103,7 @@ fun TaskCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onAbrir), // Hacer la Card clickable para abrir
+            .clickable(onClick = onAbrir),
         colors = CardDefaults.cardColors(
             containerColor = if (nota.esCompletada) MaterialTheme.colorScheme.primaryContainer
             else MaterialTheme.colorScheme.surfaceVariant
@@ -121,21 +119,30 @@ fun TaskCard(
                     text = nota.descripcion.take(50) + if (nota.descripcion.length > 50) "..." else "",
                     style = MaterialTheme.typography.bodySmall
                 )
-                Text(text = "Tipo: ${nota.tipo.name}", style = MaterialTheme.typography.bodySmall)
+                // 3. Localización de "Tipo: "
+                Text(
+                    text = stringResource(R.string.label_tipo, nota.tipo.name),
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
             if (nota.esCompletada && nota.tipo == TipoNota.TAREA) {
-                Icon(imageVector = Icons.Filled.Check, contentDescription = "Completada")
+                // 4. Localización de contentDescription
+                Icon(imageVector = Icons.Filled.Check, contentDescription = stringResource(R.string.status_completada))
             }
             if (nota.tipo == TipoNota.TAREA) {
                 IconButton(onClick = onCompletar) {
+                    // 5. Localización condicional de contentDescription
                     Icon(
                         imageVector = if (nota.esCompletada) Icons.Filled.Undo else Icons.Filled.Check,
-                        contentDescription = if (nota.esCompletada) "Desmarcar" else "Completar"
+                        contentDescription = stringResource(
+                            if (nota.esCompletada) R.string.action_desmarcar else R.string.action_completar
+                        )
                     )
                 }
             }
             IconButton(onClick = onEliminar) {
-                Icon(Icons.Filled.Delete, contentDescription = "Eliminar")
+                // 6. Localización de contentDescription
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_eliminar))
             }
         }
     }
@@ -144,7 +151,8 @@ fun TaskCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppToolbar(
-    title: String,
+    // 7. Cambio de String a Int Resource ID
+    titleResId: Int,
     modifier: Modifier = Modifier
 ) {
     val containerColor = MaterialTheme.colorScheme.primary
@@ -154,7 +162,8 @@ fun AppToolbar(
         modifier = modifier,
         title = {
             Text(
-                text = title,
+                // 8. Uso de stringResource para el título
+                text = stringResource(titleResId),
                 style = MaterialTheme.typography.titleLarge
             )
         },
@@ -166,10 +175,12 @@ fun AppToolbar(
         ),
         actions = {
             IconButton(onClick = { /* Acción de búsqueda */ }) {
-                Icon(Icons.Default.Search, contentDescription = "Buscar")
+                // 9. Uso de stringResource para contentDescription
+                Icon(Icons.Default.Search, contentDescription = stringResource(R.string.action_buscar))
             }
             IconButton(onClick = { /* Acción de menú */ }) {
-                Icon(Icons.Default.Menu, contentDescription = "Menú")
+                // 10. Uso de stringResource para contentDescription
+                Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.action_menu))
             }
         }
     )
@@ -177,14 +188,21 @@ fun AppToolbar(
 
 @Composable
 fun FilterTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit) {
-    val tabTitles = listOf("Todas", "Notas", "Tareas", "Cumplidas")
+    // 11. Reemplazamos las cadenas fijas por IDs de recursos
+    val tabTitleResourceIds = listOf(
+        R.string.tab_todas,
+        R.string.tab_notas,
+        R.string.tab_tareas,
+        R.string.tab_cumplidas
+    )
 
     TabRow(selectedTabIndex = selectedTabIndex) {
-        tabTitles.forEachIndexed { index, title ->
+        tabTitleResourceIds.forEachIndexed { index, titleResId ->
             Tab(
                 selected = index == selectedTabIndex,
                 onClick = { onTabSelected(index) },
-                text = { Text(title) }
+                // 12. Uso de stringResource para el texto de la pestaña
+                text = { Text(stringResource(titleResId)) }
             )
         }
     }
@@ -193,14 +211,18 @@ fun FilterTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit) {
 @Composable
 fun CustomFab(onClick: () -> Unit) {
     FloatingActionButton(onClick = onClick) {
-        Icon(Icons.Filled.Add, contentDescription = "Crear Nuevo")
+        // 13. Uso de stringResource para contentDescription
+        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_crear_nuevo))
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, locale = "fr")
 @Composable
 fun PreviewMainScreen() {
     NotasYMediaTheme {
-        MainScreen(onNavigateToForm = {}, onNavigateToDetail = {})
+        MainScreen(onNavigateToForm = {},
+            onNavigateToDetail = {}
+
+        )
     }
 }

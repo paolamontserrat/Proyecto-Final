@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Notas e Mídia</string>
+
+    <string name="title_notas_tareas">Notas e Tarefas</string>
+    <string name="title_nueva_nota">Nova Nota</string>
+    <string name="title_nueva_tarea">Nova Tarefa</string>
+    <string name="title_selecciona_fuente">Selecionar Fonte de Mídia</string>
+    <string name="label_adjuntar_multimedia">Anexar Mídia (RF-02)</string>
+    <string name="label_adjuntos_multimedia">Anexos de Mídia</string>
+
+    <string name="label_titulo">Título</string>
+    <string name="label_descripcion">Descrição</string>
+    <string name="label_nota">Nota</string>
+    <string name="label_tarea">Tarefa</string>
+    <string name="label_tipo">Tipo: %s</string>
+    <string name="label_fecha_vencimiento">Data de Vencimento: %s</string>
+    <string name="label_archivo">Arquivo</string>
+    <string name="label_vence">Vence em: %s</string>
+
+    <string name="tab_todas">Todas</string>
+    <string name="tab_notas">Notas</string>
+    <string name="tab_tareas">Tarefas</string>
+    <string name="tab_cumplidas">Concluídas</string>
+
+    <string name="action_buscar">Buscar</string>
+    <string name="action_menu">Menu</string>
+    <string name="action_volver">Voltar</string>
+    <string name="action_editar">Editar</string>
+    <string name="action_crear_nuevo">Criar Novo</string>
+    <string name="action_eliminar">Excluir</string>
+    <string name="action_completar">Concluir</string>
+    <string name="action_desmarcar">Desmarcar</string>
+    <string name="action_eliminar_tarea">Excluir Tarefa</string>
+    <string name="action_posponer_tarea">Adiar Tarefa</string>
+
+    <string name="button_guardar">Salvar</string>
+    <string name="button_actualizar">Atualizar</string>
+    <string name="button_seleccionar_fecha">Selecionar Data</string>
+    <string name="button_ok">OK</string>
+    <string name="button_cancelar">Cancelar</string>
+
+    <string name="button_tomar_foto_video">Tirar Foto/Vídeo</string>
+    <string name="button_grabar_audio">Gravar Áudio</string>
+    <string name="button_seleccionar_archivo_bs">Selecionar Arquivo</string>
+
+    <string name="action_adjunto_foto">Foto/Vídeo</string>
+    <string name="action_adjunto_audio">Gravar Áudio</string>
+    <string name="action_adjunto_archivo">Selecionar Arquivo</string>
+    <string name="action_adjunto_descripcion">Escrever descrição</string>
+    <string name="action_adjunto_generico">Anexo</string>
+
+    <string name="status_completada">Concluída</string>
+    <string name="status_no_seleccionada">Não selecionada</string>
+    <string name="status_cargando_nota">Carregando nota...</string>
+    <string name="status_pendiente">Pendente</string>
+    <string name="status_completada_fecha">Concluída em %s</string>
+
+    <string name="placeholder_detail_title">Selecione uma Nota ou Tarefa</string>
+    <string name="placeholder_detail_subtitle">Para ver os detalhes neste painel</string>
+    <string name="placeholder_miniaturas">--- Placeholder: Linha rolável de miniaturas (AttachmentRow) ---</string>
+
+</resources>

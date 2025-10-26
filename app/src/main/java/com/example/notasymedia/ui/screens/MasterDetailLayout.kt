@@ -10,33 +10,48 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.res.stringResource // <-- ¡IMPORTANTE para localización!
-import com.example.notasymedia.R // <-- ¡IMPORTANTE para recursos!
+import androidx.compose.ui.res.stringResource
+import com.example.notasymedia.R
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 
+/**
+ * Estado para el panel de detalle.
+ */
+sealed class DetailState {
+    object Placeholder : DetailState()
+    data class ItemDetail(val id: Int) : DetailState()
+    object NewForm : DetailState()
+    data class EditForm(val id: Int) : DetailState()
+}
 
 /**
- * Un Layout Master/Detail (Maestro/Detalle) para pantallas grandes o tablets.
- * Muestra la lista de notas (Master) a la izquierda y los detalles (Detail) a la derecha.
- *
- * @param onNavigateToEdit Acción para ir a EntryFormScreen (para editar o crear).
+ * Layout Master/Detail para tablets. Maneja internamente la navegación a formulario en el panel derecho.
  */
 @Composable
 fun MasterDetailLayout(
     modifier: Modifier = Modifier,
-    onNavigateToEdit: (Int) -> Unit // Acción para ir a EntryFormScreen
+    onNavigateToEdit: (Int) -> Unit = {}
 ) {
-    // 💡 Paso clave: El estado de la nota/tarea seleccionada.
-    var currentSelectedItem by remember { mutableStateOf(-1) }
+    // Estado para el contenido del panel derecho
+    var detailState by remember { mutableStateOf<DetailState>(DetailState.Placeholder) }
 
     Row(modifier = modifier.fillMaxSize()) {
 
-        // ========= 1. PANEL MAESTRO (MainScreen) =========
+        // ========= PANEL MAESTRO (MainScreen) =========
         Column(modifier = Modifier.weight(0.4f).fillMaxHeight()) {
             MainScreen(
                 modifier = Modifier.fillMaxSize(),
-                onNavigateToForm = onNavigateToEdit,
-                onNavigateToDetail = { id -> currentSelectedItem = id }
+                onNavigateToForm = { id ->
+                    detailState = if (id == -1) {
+                        DetailState.NewForm
+                    } else {
+                        DetailState.EditForm(id)
+                    }
+                },
+                onNavigateToDetail = { id ->
+                    // Para detalle: muestra DetailScreen en panel derecho
+                    detailState = DetailState.ItemDetail(id)
+                }
             )
         }
 
@@ -45,28 +60,47 @@ fun MasterDetailLayout(
             modifier = Modifier
                 .width(1.dp)
                 .fillMaxHeight()
-                // APLICACIÓN DEL COLOR ROSA/MORADO VIBRANTE (primary)
                 .background(MaterialTheme.colorScheme.primary)
         )
 
-        // ========= 2. PANEL DETALLE (DetailScreen o Placeholder) =========
+        // ========= PANEL DETALLE =========
         Column(modifier = Modifier.weight(0.6f).fillMaxHeight()) {
-            if (currentSelectedItem != -1) {
-                DetailScreen(
-                    itemId = currentSelectedItem,
-                    onNavigateToEdit = { onNavigateToEdit(currentSelectedItem) },
-                    onNavigateBack = { currentSelectedItem = -1 }
-                )
-            } else {
-                PlaceholderDetailScreen()
+            when (val current = detailState) {
+                is DetailState.Placeholder -> {
+                    PlaceholderDetailScreen()
+                }
+                is DetailState.ItemDetail -> {
+                    DetailScreen(
+                        itemId = current.id,
+                        onNavigateToEdit = {
+                            detailState = DetailState.EditForm(current.id)
+                        },
+                        onNavigateBack = {
+                            detailState = DetailState.Placeholder
+                        }
+                    )
+                }
+                is DetailState.NewForm, is DetailState.EditForm -> {
+                    val formId = when (current) {
+                        is DetailState.NewForm -> -1
+                        is DetailState.EditForm -> current.id
+                        else -> -1
+                    }
+                    EntryFormScreen(
+                        itemId = formId,
+                        onNavigateBack = {
+                            detailState = DetailState.Placeholder
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
     }
 }
 
-
 /**
- * Marcador de posición para el panel de detalle cuando no hay ninguna nota seleccionada.
+ * Marcador de posición para el panel de detalle cuando no hay selección.
  */
 @Composable
 fun PlaceholderDetailScreen() {
@@ -77,18 +111,15 @@ fun PlaceholderDetailScreen() {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                // Localización del título
                 stringResource(R.string.placeholder_detail_title),
                 style = MaterialTheme.typography.headlineSmall
             )
             Text(
-                // Localización del subtítulo
                 stringResource(R.string.placeholder_detail_subtitle)
             )
         }
     }
 }
-
 
 @Preview(
     widthDp = 1024,
@@ -98,8 +129,6 @@ fun PlaceholderDetailScreen() {
 @Composable
 fun PreviewMasterDetailLayout() {
     NotasYMediaTheme {
-        MasterDetailLayout(
-            onNavigateToEdit = {}
-        )
+        MasterDetailLayout()
     }
 }

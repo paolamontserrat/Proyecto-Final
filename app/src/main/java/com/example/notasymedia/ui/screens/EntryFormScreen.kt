@@ -45,28 +45,30 @@ fun EntryFormScreen(
         }
     )
 
-    // ... (Estados y lógica de carga sin cambios)
-
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var isTask by remember { mutableStateOf(false) }
     var fechaVencimiento by remember { mutableStateOf<Date?>(null) }
+    var nota by remember { mutableStateOf<NotaEntity?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showMediaSheet by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
 
+    // Carga la nota si es edición
     LaunchedEffect(itemId) {
         if (itemId != -1) {
-            val nota = viewModel.obtenerPorId(itemId)
-            Log.d("EntryFormScreen", "Cargando nota con ID $itemId: $nota")
-            nota?.let {
+            val loadedNota = viewModel.obtenerPorId(itemId)
+            Log.d("EntryFormScreen", "Cargando nota con ID $itemId: $loadedNota")
+            nota = loadedNota
+            loadedNota?.let {
                 titulo = it.titulo
                 descripcion = it.descripcion
                 isTask = it.tipo == TipoNota.TAREA
                 fechaVencimiento = it.fechaVencimiento
             } ?: run {
                 Log.d("EntryFormScreen", "Nota no encontrada para ID $itemId")
+                // Reset states si no existe
                 titulo = ""
                 descripcion = ""
                 isTask = false
@@ -81,26 +83,26 @@ fun EntryFormScreen(
             Button(
                 onClick = {
                     coroutineScope.launch {
-                        val nota = NotaEntity(
-                            id = if (itemId != -1) itemId else 0,
-                            titulo = titulo,
-                            descripcion = descripcion,
-                            tipo = if (isTask) TipoNota.TAREA else TipoNota.NOTA,
-                            fechaCreacion = Date(),
-                            fechaVencimiento = if (isTask) fechaVencimiento else null,
-                            esCompletada = false
-                        )
-                        if (itemId != -1) {
-                            viewModel.actualizar(nota)
+                        val tipo = if (isTask) TipoNota.TAREA else TipoNota.NOTA
+                        if (nota != null) {
+                            // EDICIÓN: Copia la original y actualiza solo lo necesario (preserva fechaCreacion)
+                            val updatedNota = nota!!.copy(
+                                titulo = titulo,
+                                descripcion = descripcion,
+                                tipo = tipo,
+                                fechaVencimiento = if (isTask) fechaVencimiento else null
+                                // esCompletada se mantiene igual
+                            )
+                            viewModel.actualizar(updatedNota)
                         } else {
-                            viewModel.insertarNueva(titulo, descripcion, nota.tipo, fechaVencimiento)
+                            // NUEVA: Crea desde cero
+                            viewModel.insertarNueva(titulo, descripcion, tipo, if (isTask) fechaVencimiento else null)
                         }
                         onNavigateBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
-                // 1. Localización del botón "Guardar" / "Actualizar"
                 Text(
                     stringResource(
                         if (itemId != -1) R.string.button_actualizar else R.string.button_guardar
@@ -122,7 +124,6 @@ fun EntryFormScreen(
             OutlinedTextField(
                 value = titulo,
                 onValueChange = { titulo = it },
-                // 2. Localización de la etiqueta "Título"
                 label = { Text(stringResource(R.string.label_titulo)) },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -130,7 +131,6 @@ fun EntryFormScreen(
             OutlinedTextField(
                 value = descripcion,
                 onValueChange = { descripcion = it },
-                // 3. Localización de la etiqueta "Descripción"
                 label = { Text(stringResource(R.string.label_descripcion)) },
                 modifier = Modifier.fillMaxWidth().height(120.dp),
                 maxLines = 5
@@ -141,7 +141,6 @@ fun EntryFormScreen(
                 val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        // 4. Localización del texto de "Fecha de Vencimiento"
                         text = stringResource(
                             R.string.label_fecha_vencimiento,
                             fechaVencimiento?.let { formatter.format(it) } ?: stringResource(R.string.status_no_seleccionada)
@@ -150,18 +149,15 @@ fun EntryFormScreen(
                         modifier = Modifier.weight(1f)
                     )
                     Button(onClick = { showDatePicker = true }) {
-                        // 5. Localización del botón "Seleccionar Fecha"
                         Text(stringResource(R.string.button_seleccionar_fecha))
                     }
                 }
             }
 
             Spacer(Modifier.height(24.dp))
-            // 6. Localización del encabezado "Adjuntar Multimedia"
             Text(stringResource(R.string.label_adjuntar_multimedia), style = MaterialTheme.typography.titleMedium)
             MediaTypeSelector(onAttachClicked = { showMediaSheet = true })
 
-            // 7. Localización del placeholder
             Text(stringResource(R.string.placeholder_miniaturas))
         }
     }
@@ -177,13 +173,11 @@ fun EntryFormScreen(
                     }
                     showDatePicker = false
                 }) {
-                    // 8. Localización del botón "OK"
                     Text(stringResource(R.string.button_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    // 9. Localización del botón "Cancelar"
                     Text(stringResource(R.string.button_cancelar))
                 }
             }

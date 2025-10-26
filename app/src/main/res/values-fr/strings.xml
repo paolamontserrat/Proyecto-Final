@@ -5,6 +5,8 @@
     <string name="title_notas_tareas">Notes et tâches</string>
     <string name="title_nueva_nota">Nouvelle note</string>
     <string name="title_nueva_tarea">Nouvelle tâche</string>
+    <string name="title_actualizar_tarea">Mettre à jour la tâche</string>
+    <string name="title_actualizar_nota">Mettre à jour la note</string>
     <string name="title_selecciona_fuente">Sélectionner la source média</string>
     <string name="label_adjuntar_multimedia">Joindre média (RF-02)</string>
     <string name="label_adjuntos_multimedia">Pièces jointes média</string>
@@ -60,4 +62,6 @@
     <string name="placeholder_detail_subtitle">Pour voir les détails dans ce panneau</string>
     <string name="placeholder_miniaturas">--- Espace réservé: Ligne défilante de miniatures (AttachmentRow) ---</string>
 
+    <string name="label_hora_vencimiento">Heure d\'expiration :</string>
+    <string name="button_seleccionar_hora">Sélectionner l\'heure</string>
 </resources>

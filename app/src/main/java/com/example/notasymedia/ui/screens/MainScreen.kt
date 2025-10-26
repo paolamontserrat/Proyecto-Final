@@ -28,6 +28,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.compose.ui.res.stringResource
 import com.example.notasymedia.R
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 
 @Composable
 fun MainScreen(
@@ -113,35 +115,32 @@ fun TaskCard(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (nota.tipo == TipoNota.TAREA) {
+                val contentDesc = stringResource(
+                    if (nota.esCompletada) R.string.action_desmarcar else R.string.action_completar
+                )
+                RadioButton(
+                    selected = nota.esCompletada,
+                    onClick = onCompletar,
+                    modifier = Modifier.semantics {
+                        this.contentDescription = contentDesc
+                    }
+                )
+            }
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = nota.titulo, style = MaterialTheme.typography.titleMedium)
                 Text(
                     text = nota.descripcion.take(50) + if (nota.descripcion.length > 50) "..." else "",
                     style = MaterialTheme.typography.bodySmall
                 )
-                // 3. Localización de "Tipo: "
+                //Localización de "Tipo:"
                 Text(
                     text = stringResource(R.string.label_tipo, nota.tipo.name),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            if (nota.esCompletada && nota.tipo == TipoNota.TAREA) {
-                // 4. Localización de contentDescription
-                Icon(imageVector = Icons.Filled.Check, contentDescription = stringResource(R.string.status_completada))
-            }
-            if (nota.tipo == TipoNota.TAREA) {
-                IconButton(onClick = onCompletar) {
-                    // 5. Localización condicional de contentDescription
-                    Icon(
-                        imageVector = if (nota.esCompletada) Icons.Filled.Undo else Icons.Filled.Check,
-                        contentDescription = stringResource(
-                            if (nota.esCompletada) R.string.action_desmarcar else R.string.action_completar
-                        )
-                    )
-                }
-            }
             IconButton(onClick = onEliminar) {
-                // 6. Localización de contentDescription
+                // Localización de contentDescription
                 Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_eliminar))
             }
         }
@@ -151,7 +150,7 @@ fun TaskCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppToolbar(
-    // 7. Cambio de String a Int Resource ID
+    //Cambio de String a Int Resource ID
     titleResId: Int,
     modifier: Modifier = Modifier
 ) {

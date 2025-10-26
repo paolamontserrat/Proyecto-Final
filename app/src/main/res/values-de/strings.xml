@@ -5,6 +5,8 @@
     <string name="title_notas_tareas">Notizen und Aufgaben</string>
     <string name="title_nueva_nota">Neue Notiz</string>
     <string name="title_nueva_tarea">Neue Aufgabe</string>
+    <string name="title_actualizar_tarea">Aufgabe Aktualisieren</string>
+    <string name="title_actualizar_nota">Note Aktualisieren</string>
     <string name="title_selecciona_fuente">Medienquelle auswählen</string>
     <string name="label_adjuntar_multimedia">Medien anhängen (RF-02)</string>
     <string name="label_adjuntos_multimedia">Medienanhänge</string>
@@ -59,4 +61,7 @@
     <string name="placeholder_detail_title">Wählen Sie eine Notiz oder Aufgabe</string>
     <string name="placeholder_detail_subtitle">Um die Details in diesem Bereich anzuzeigen</string>
     <string name="placeholder_miniaturas">--- Platzhalter: Scrollbare Reihe von Miniaturbildern (AttachmentRow) ---</string>
+
+    <string name="label_hora_vencimiento">Fälligkeitszeit:</string>
+    <string name="button_seleccionar_hora">Zeit auswählen</string>
 </resources>

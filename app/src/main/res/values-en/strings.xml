@@ -5,6 +5,8 @@
     <string name="title_notas_tareas">Notes and Tasks</string>
     <string name="title_nueva_nota">New Note</string>
     <string name="title_nueva_tarea">New Task</string>
+    <string name="title_actualizar_tarea">Update Tarea</string>
+    <string name="title_actualizar_nota">Update Nota</string>
     <string name="title_selecciona_fuente">Select Media Source</string>
     <string name="label_adjuntar_multimedia">Attach Media (RF-02)</string>
     <string name="label_adjuntos_multimedia">Media Attachments</string>
@@ -60,4 +62,6 @@
     <string name="placeholder_detail_subtitle">To see the detail in this panel</string>
     <string name="placeholder_miniaturas">--- Placeholder: ScrollableRow of thumbnails (AttachmentRow) ---</string>
 
+    <string name="label_hora_vencimiento">Expiration time:</string>
+    <string name="button_seleccionar_hora">Select Time</string>
 </resources>

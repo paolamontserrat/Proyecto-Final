@@ -28,7 +28,7 @@ class NotaViewModel(private val context: android.content.Context) : ViewModel() 
                 descripcion = descripcion,
                 tipo = tipo,
                 fechaCreacion = java.util.Date(),
-                fechaVencimiento = fechaVencimiento // Solo para tareas
+                fechaVencimiento = fechaVencimiento
             )
             repository.insertar(nuevaNota)
         }

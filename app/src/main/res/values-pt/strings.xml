@@ -5,6 +5,8 @@
     <string name="title_notas_tareas">Notas e Tarefas</string>
     <string name="title_nueva_nota">Nova Nota</string>
     <string name="title_nueva_tarea">Nova Tarefa</string>
+    <string name="title_actualizar_tarea">Atualizar Tarefa</string>
+    <string name="title_actualizar_nota">Atualizar Nota</string>
     <string name="title_selecciona_fuente">Selecionar Fonte de Mídia</string>
     <string name="label_adjuntar_multimedia">Anexar Mídia (RF-02)</string>
     <string name="label_adjuntos_multimedia">Anexos de Mídia</string>
@@ -60,4 +62,6 @@
     <string name="placeholder_detail_subtitle">Para ver os detalhes neste painel</string>
     <string name="placeholder_miniaturas">--- Placeholder: Linha rolável de miniaturas (AttachmentRow) ---</string>
 
+    <string name="label_hora_vencimiento">Hora de expiração:</string>
+    <string name="button_seleccionar_hora">Selecionar Hora</string>
 </resources>

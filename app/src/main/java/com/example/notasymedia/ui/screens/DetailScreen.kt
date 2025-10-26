@@ -71,7 +71,7 @@ fun DetailScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             if (nota == null) {
-                // 1. Localización: "Cargando nota..."
+                //Localización: "Cargando nota..."
                 Text(stringResource(R.string.status_cargando_nota), style = MaterialTheme.typography.bodyMedium)
             } else {
                 Text(
@@ -79,52 +79,35 @@ fun DetailScreen(
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
-
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (nota!!.tipo == TipoNota.TAREA) {
                         Icon(
                             Icons.Filled.CheckCircle,
-                            // 2. Localización: contentDescription
+                            // Localización: contentDescription
                             contentDescription = stringResource(R.string.status_completada),
                             tint = if (nota!!.esCompletada) Color.Green else Color.Gray,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(8.dp))
+                    }
+                    if (nota!!.tipo == TipoNota.TAREA && nota!!.fechaVencimiento != null) {
+                        val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                        val fechaHora = formatter.format(nota!!.fechaVencimiento)
                         Text(
-                            // 3. Localización: Estado de completado
-                            text = if (nota!!.esCompletada) {
-                                stringResource(
-                                    R.string.status_completada_fecha,
-                                    SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(nota!!.fechaCreacion)
-                                )
-                            } else {
-                                stringResource(R.string.status_pendiente)
-                            },
-                            style = MaterialTheme.typography.bodyMedium
+                            text = stringResource(R.string.label_fecha_vencimiento, fechaHora),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (nota!!.esCompletada) Color.Gray else MaterialTheme.colorScheme.primary
                         )
-                        if (nota!!.fechaVencimiento != null) {
-                            Text(
-                                // 4. Localización: Fecha de vencimiento
-                                text = stringResource(
-                                    R.string.label_vence,
-                                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(nota!!.fechaVencimiento!!)
-                                ),
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
                     }
                 }
 
                 Spacer(Modifier.height(16.dp))
-
                 Text(
                     text = nota!!.descripcion,
                     style = MaterialTheme.typography.bodyLarge
                 )
-
                 Spacer(Modifier.height(24.dp))
-                // 5. Localización: Encabezado "Adjuntos Multimedia"
+                // Localización: Encabezado "Adjuntos Multimedia"
                 Text(stringResource(R.string.label_adjuntos_multimedia), style = MaterialTheme.typography.titleMedium)
                 AttachmentRow()
             }
@@ -180,7 +163,7 @@ fun TaskActionsBottomBar() {
             Button(onClick = { /* Posponer */ },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 modifier = Modifier.weight(1f)) {
-                // 8. Localización: contentDescription y texto
+                // Localización: contentDescription y texto
                 Icon(Icons.Filled.Timer, contentDescription = stringResource(R.string.action_posponer_tarea))
                 Spacer(Modifier.width(4.dp))
                 Text(stringResource(R.string.action_posponer_tarea))
@@ -192,7 +175,7 @@ fun TaskActionsBottomBar() {
             Button(onClick = { /* Eliminar */ },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
                 modifier = Modifier.weight(1f)) {
-                // 9. Localización: contentDescription y texto
+                //Localización: contentDescription y texto
                 Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_eliminar_tarea))
                 Spacer(Modifier.width(4.dp))
                 Text(stringResource(R.string.action_eliminar_tarea))

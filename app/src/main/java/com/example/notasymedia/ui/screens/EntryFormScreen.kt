@@ -22,12 +22,12 @@ import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import com.example.notasymedia.viewmodel.NotaViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.*
 import java.util.Locale
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-
-import androidx.compose.ui.res.stringResource // <-- ¡IMPORTANTE!
-import com.example.notasymedia.R // <-- ¡IMPORTANTE!
+import androidx.compose.ui.res.stringResource
+import com.example.notasymedia.R
+import androidx.compose.runtime.derivedStateOf
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,67 +49,120 @@ fun EntryFormScreen(
     var descripcion by remember { mutableStateOf("") }
     var isTask by remember { mutableStateOf(false) }
     var fechaVencimiento by remember { mutableStateOf<Date?>(null) }
+    var horaVencimiento by remember { mutableStateOf<Int?>(null) }
+    var minutoVencimiento by remember { mutableStateOf<Int?>(null) }
     var nota by remember { mutableStateOf<NotaEntity?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
     var showMediaSheet by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
 
-    // Carga la nota si es edición
-    LaunchedEffect(itemId) {
+    // Cargar nota
+    LaunchedEffect(key1 = itemId) {
         if (itemId != -1) {
+            Log.d("EntryFormScreen", "Iniciando carga para editar ID: $itemId")
             val loadedNota = viewModel.obtenerPorId(itemId)
-            Log.d("EntryFormScreen", "Cargando nota con ID $itemId: $loadedNota")
+            Log.d("EntryFormScreen", "Nota cargada: $loadedNota")
             nota = loadedNota
             loadedNota?.let {
                 titulo = it.titulo
                 descripcion = it.descripcion
                 isTask = it.tipo == TipoNota.TAREA
                 fechaVencimiento = it.fechaVencimiento
+                it.fechaVencimiento?.let { date ->
+                    val cal = Calendar.getInstance().apply { time = date }
+                    horaVencimiento = cal.get(Calendar.HOUR_OF_DAY)
+                    minutoVencimiento = cal.get(Calendar.MINUTE)
+                    Log.d("EntryFormScreen", "Cargada hora/min: ${horaVencimiento}:${minutoVencimiento}")
+                }
+                Log.d("EntryFormScreen", "Estados actualizados: titulo=$titulo, isTask=$isTask")
             } ?: run {
-                Log.d("EntryFormScreen", "Nota no encontrada para ID $itemId")
-                // Reset states si no existe
+                Log.w("EntryFormScreen", "Nota no encontrada para ID $itemId - reset states")
                 titulo = ""
                 descripcion = ""
                 isTask = false
                 fechaVencimiento = null
+                horaVencimiento = null
+                minutoVencimiento = null
+            }
+        } else {
+            Log.d("EntryFormScreen", "Modo nuevo: reset estados")
+            nota = null
+            titulo = ""
+            descripcion = ""
+            isTask = false
+            fechaVencimiento = null
+            horaVencimiento = null
+            minutoVencimiento = null
+        }
+    }
+
+    val noSeleccionada = stringResource(R.string.status_no_seleccionada)
+    val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    val fechaHoraTexto by remember {
+        derivedStateOf {
+            if (fechaVencimiento != null && horaVencimiento != null && minutoVencimiento != null) {
+                val cal = Calendar.getInstance().apply {
+                    time = fechaVencimiento!!
+                    set(Calendar.HOUR_OF_DAY, horaVencimiento!!)
+                    set(Calendar.MINUTE, minutoVencimiento!!)
+                }
+                formatter.format(cal.time)
+            } else if (fechaVencimiento != null) {
+                val cal = Calendar.getInstance().apply {
+                    time = fechaVencimiento!!
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                }
+                formatter.format(cal.time)
+            } else {
+                noSeleccionada
             }
         }
     }
 
-    Scaffold(
-        topBar = { FormToolbar(isTask, onNavigateBack) },
-        bottomBar = {
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        val tipo = if (isTask) TipoNota.TAREA else TipoNota.NOTA
-                        if (nota != null) {
-                            // EDICIÓN: Copia la original y actualiza solo lo necesario (preserva fechaCreacion)
-                            val updatedNota = nota!!.copy(
-                                titulo = titulo,
-                                descripcion = descripcion,
-                                tipo = tipo,
-                                fechaVencimiento = if (isTask) fechaVencimiento else null
-                                // esCompletada se mantiene igual
-                            )
-                            viewModel.actualizar(updatedNota)
-                        } else {
-                            // NUEVA: Crea desde cero
-                            viewModel.insertarNueva(titulo, descripcion, tipo, if (isTask) fechaVencimiento else null)
-                        }
-                        onNavigateBack()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
-            ) {
-                Text(
-                    stringResource(
-                        if (itemId != -1) R.string.button_actualizar else R.string.button_guardar
-                    )
+    val onGuardarClick = {
+        coroutineScope.launch {
+            val tipo = if (isTask) TipoNota.TAREA else TipoNota.NOTA
+            val vencimientoFinal: Date? = if (isTask && fechaVencimiento != null) {
+                val cal = Calendar.getInstance().apply {
+                    time = fechaVencimiento!!
+                    set(Calendar.HOUR_OF_DAY, horaVencimiento ?: 0)
+                    set(Calendar.MINUTE, minutoVencimiento ?: 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                cal.time
+            } else null
+            if (nota != null) {
+                // EDICIÓN
+                val updatedNota = nota!!.copy(
+                    titulo = titulo,
+                    descripcion = descripcion,
+                    tipo = tipo,
+                    fechaVencimiento = vencimientoFinal
                 )
+                viewModel.actualizar(updatedNota)
+                Log.d("EntryFormScreen", "Actualizada nota ID ${nota!!.id}")
+            } else {
+                // NUEVA: FIX - Usa vencimientoFinal para incluir hora
+                viewModel.insertarNueva(titulo, descripcion, tipo, vencimientoFinal)
+                Log.d("EntryFormScreen", "Insertada nueva nota/tarea")
             }
+            onNavigateBack()
         }
+        Unit  // FIX: Retorna Unit para () -> Unit
+    }
+
+    Scaffold(
+        topBar = {
+            FormToolbar(
+                isTask,
+                onNavigateBack,
+                onGuardar = onGuardarClick,
+                itemId = itemId
+            ) },
     ) { paddingValues ->
         Column(
             modifier = modifier
@@ -138,18 +191,22 @@ fun EntryFormScreen(
 
             if (isTask) {
                 Spacer(Modifier.height(16.dp))
-                val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
-                        text = stringResource(
-                            R.string.label_fecha_vencimiento,
-                            fechaVencimiento?.let { formatter.format(it) } ?: stringResource(R.string.status_no_seleccionada)
-                        ),
+                        text = stringResource(R.string.label_fecha_vencimiento, fechaHoraTexto),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)
                     )
                     Button(onClick = { showDatePicker = true }) {
                         Text(stringResource(R.string.button_seleccionar_fecha))
+                    }
+                    if (fechaVencimiento != null) {
+                        Button(onClick = { showTimePicker = true }) {
+                            Text(stringResource(R.string.button_seleccionar_hora))
+                        }
                     }
                 }
             }
@@ -163,18 +220,19 @@ fun EntryFormScreen(
     }
 
     if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = fechaVencimiento?.time ?: System.currentTimeMillis())
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
                         fechaVencimiento = Date(millis)
+                        horaVencimiento = null
+                        minutoVencimiento = null
+                        Log.d("EntryFormScreen", "Fecha seleccionada: $millis")
                     }
                     showDatePicker = false
-                }) {
-                    Text(stringResource(R.string.button_ok))
-                }
+                }) { Text(stringResource(R.string.button_ok)) }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
@@ -185,6 +243,32 @@ fun EntryFormScreen(
             DatePicker(state = datePickerState)
         }
     }
+    if (showTimePicker) {
+        val timePickerState = rememberTimePickerState(
+            initialHour = horaVencimiento ?: 0,
+            initialMinute = minutoVencimiento ?: 0
+        )
+        TimePickerDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    horaVencimiento = timePickerState.hour
+                    minutoVencimiento = timePickerState.minute
+                    Log.d("EntryFormScreen", "Hora seleccionada: ${timePickerState.hour}:${timePickerState.minute}")
+                    showTimePicker = false
+                }) {
+                    Text(stringResource(R.string.button_ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text(stringResource(R.string.button_cancelar))
+                }
+            }
+        ) {
+            TimePicker(state = timePickerState)
+        }
+    }
 
     if (showMediaSheet) {
         MediaPickerBottomSheet(onDismiss = { showMediaSheet = false })
@@ -193,31 +277,80 @@ fun EntryFormScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormToolbar(isTask: Boolean, onNavigateBack: () -> Unit) {
+private fun TimePickerDialog(
+    onDismissRequest: () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = confirmButton,
+        dismissButton = dismissButton,
+        text = {
+            content()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FormToolbar(
+    isTask: Boolean,
+    onNavigateBack: () -> Unit,
+    onGuardar: () -> Unit,
+    itemId: Int,
+    modifier: Modifier = Modifier
+) {
     val containerColor = MaterialTheme.colorScheme.primary
     val contentColor = MaterialTheme.colorScheme.onPrimary
 
     CenterAlignedTopAppBar (
         title = {
-            Text(
-                // 10. Localización condicional del título "Nueva Tarea" / "Nueva Nota"
-                text = stringResource(
-                    if (isTask) R.string.title_nueva_tarea else R.string.title_nueva_nota
-                ),
-                style = MaterialTheme.typography.titleLarge
-            )
+            if (itemId == -1) {
+                Text(
+                    // Localización condicional del título "Nueva Tarea" / "Nueva Nota"
+                    text = stringResource(
+                        if (isTask) R.string.title_nueva_tarea else R.string.title_nueva_nota
+                    ),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+            else{
+                Text(
+                    // Localización condicional del título "Nueva Tarea" / "Nueva Nota"
+                    text = stringResource(
+                        if (isTask) R.string.title_actualizar_tarea else R.string.title_actualizar_nota
+                    ),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
         },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = containerColor,
-            titleContentColor = contentColor,
-            navigationIconContentColor = contentColor
-        ),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-                // 11. Localización del contentDescription "Volver"
-                Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.action_volver))
+                Icon(
+                    Icons.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.action_volver)
+                )
             }
-        }
+        },
+        actions = {
+            IconButton(onClick = onGuardar) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = stringResource(
+                        if (itemId != -1) R.string.button_actualizar else R.string.button_guardar
+                    ),
+                    tint = contentColor
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = containerColor,
+            titleContentColor = contentColor,
+            actionIconContentColor = contentColor,
+            navigationIconContentColor = contentColor
+        )
     )
 }
 
@@ -236,7 +369,7 @@ fun ClassificationSwitch(isTask: Boolean, onToggle: (Boolean) -> Unit) {
                 containerColor = if (!isTask) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
             )
         ) {
-            // 12. Localización del texto "Nota"
+            // Localización del texto "Nota"
             Text(stringResource(R.string.label_nota))
         }
         Spacer(Modifier.width(8.dp))
@@ -247,7 +380,7 @@ fun ClassificationSwitch(isTask: Boolean, onToggle: (Boolean) -> Unit) {
                 containerColor = if (isTask) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
             )
         ) {
-            // 13. Localización del texto "Tarea"
+            // Localización del texto "Tarea"
             Text(stringResource(R.string.label_tarea))
         }
     }
@@ -260,7 +393,7 @@ fun MediaTypeSelector(onAttachClicked: () -> Unit) {
         // FOTO / VIDEO
         IconButton(onClick = onAttachClicked) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // 14. Localización de contentDescription y texto "Foto/Video"
+                // Localización de contentDescription y texto "Foto/Video"
                 Icon(Icons.Filled.Camera, contentDescription = stringResource(R.string.action_adjunto_foto), modifier = Modifier.size(32.dp))
                 Text(stringResource(R.string.action_adjunto_foto), style = MaterialTheme.typography.bodySmall)
             }
@@ -269,7 +402,7 @@ fun MediaTypeSelector(onAttachClicked: () -> Unit) {
         // GRABAR AUDIO
         IconButton(onClick = onAttachClicked) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // 15. Localización de contentDescription y texto "Grabar Audio"
+                // Localización de contentDescription y texto "Grabar Audio"
                 Icon(Icons.Filled.Mic, contentDescription = stringResource(R.string.action_adjunto_audio), modifier = Modifier.size(32.dp))
                 Text(stringResource(R.string.action_adjunto_audio), style = MaterialTheme.typography.bodySmall)
             }
@@ -278,7 +411,7 @@ fun MediaTypeSelector(onAttachClicked: () -> Unit) {
         // ELECCIONAR ARCHIVO
         IconButton(onClick = onAttachClicked) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // 16. Localización de contentDescription y texto "Seleccionar Archivo"
+                // Localización de contentDescription y texto "Seleccionar Archivo"
                 Icon(Icons.Filled.Folder, contentDescription = stringResource(R.string.action_adjunto_archivo), modifier = Modifier.size(32.dp))
                 Text(stringResource(R.string.action_adjunto_archivo), style = MaterialTheme.typography.bodySmall)
             }
@@ -287,7 +420,7 @@ fun MediaTypeSelector(onAttachClicked: () -> Unit) {
         // ESCRIBIR DESCRIPCIÓN
         IconButton(onClick = {}) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // 17. Localización de contentDescription y texto "Escribir descripción"
+                //Localización de contentDescription y texto "Escribir descripción"
                 Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.action_adjunto_descripcion), modifier = Modifier.size(32.dp))
                 Text(stringResource(R.string.action_adjunto_descripcion), style = MaterialTheme.typography.bodySmall)
             }
@@ -300,11 +433,11 @@ fun MediaTypeSelector(onAttachClicked: () -> Unit) {
 fun MediaPickerBottomSheet(onDismiss: () -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // 18. Localización del título "Selecciona Fuente Multimedia"
+            // Localización del título "Selecciona Fuente Multimedia"
             Text(stringResource(R.string.title_selecciona_fuente), style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
 
-            // 19. Localización de los botones grandes
+            // Localización de los botones grandes
             Button(onClick = { /* Tomar Foto/Video */ }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.button_tomar_foto_video)) }
             Spacer(Modifier.height(8.dp))
             Button(onClick = { /* Grabar Audio */ }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.button_grabar_audio)) }
@@ -319,7 +452,6 @@ fun MediaPickerBottomSheet(onDismiss: () -> Unit) {
 fun PreviewEntryFormScreen() {
     NotasYMediaTheme {
         EntryFormScreen(onNavigateBack = {}
-
         )
     }
 }

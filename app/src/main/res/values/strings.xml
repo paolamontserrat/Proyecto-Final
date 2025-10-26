@@ -5,6 +5,8 @@
     <string name="title_notas_tareas">Notas y Tareas</string>
     <string name="title_nueva_nota">Nueva Nota</string>
     <string name="title_nueva_tarea">Nueva Tarea</string>
+    <string name="title_actualizar_tarea">Actualizar Tarea</string>
+    <string name="title_actualizar_nota">Actualizar Nota</string>
     <string name="title_selecciona_fuente">Selecciona Fuente Multimedia</string>
     <string name="label_adjuntar_multimedia">Adjuntar Multimedia (RF-02)</string>
     <string name="label_adjuntos_multimedia">Adjuntos Multimedia</string>
@@ -22,7 +24,6 @@
     <string name="tab_notas">Notas</string>
     <string name="tab_tareas">Tareas</string>
     <string name="tab_cumplidas">Cumplidas</string>
-
 
     <string name="action_buscar">Buscar</string>
     <string name="action_menu">Menú</string>
@@ -62,4 +63,6 @@
     <string name="placeholder_detail_subtitle">Para ver el detalle en este panel</string>
     <string name="placeholder_miniaturas">--- Placeholder: ScrollableRow de miniaturas (AttachmentRow) ---</string>
 
+    <string name="label_hora_vencimiento">Hora de vencimiento:</string>
+    <string name="button_seleccionar_hora">Seleccionar Hora</string>
 </resources>

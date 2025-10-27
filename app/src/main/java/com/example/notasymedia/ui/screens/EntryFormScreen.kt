@@ -141,18 +141,17 @@ fun EntryFormScreen(
                     titulo = titulo,
                     descripcion = descripcion,
                     tipo = tipo,
-                    fechaVencimiento = vencimientoFinal
+                    fechaVencimiento = vencimientoFinal,
+                    fechaCreacion = Date()
                 )
                 viewModel.actualizar(updatedNota)
-                Log.d("EntryFormScreen", "Actualizada nota ID ${nota!!.id}")
             } else {
-                // NUEVA: FIX - Usa vencimientoFinal para incluir hora
+                // NUEVA
                 viewModel.insertarNueva(titulo, descripcion, tipo, vencimientoFinal)
-                Log.d("EntryFormScreen", "Insertada nueva nota/tarea")
             }
             onNavigateBack()
         }
-        Unit  // FIX: Retorna Unit para () -> Unit
+        Unit
     }
 
     Scaffold(

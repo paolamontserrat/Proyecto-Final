@@ -30,6 +30,8 @@ import com.example.notasymedia.R
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun MainScreen(
@@ -102,6 +104,8 @@ fun TaskCard(
     onCompletar: () -> Unit = {},
     onEliminar: () -> Unit = {}
 ) {
+    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())  // Formato de fecha
+    val fechaTexto = formatter.format(nota.fechaCreacion)
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -129,6 +133,10 @@ fun TaskCard(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = nota.titulo, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = fechaTexto,
+                    style = MaterialTheme.typography.bodySmall
+                )
                 Text(
                     text = nota.descripcion.take(50) + if (nota.descripcion.length > 50) "..." else "",
                     style = MaterialTheme.typography.bodySmall

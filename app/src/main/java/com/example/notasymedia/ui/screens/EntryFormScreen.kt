@@ -10,108 +10,54 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.notasymedia.data.entity.NotaEntity
-import com.example.notasymedia.data.entity.TipoNota
+import com.example.notasymedia.R
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import com.example.notasymedia.viewmodel.NotaViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.Locale
-import androidx.compose.ui.res.stringResource
-import com.example.notasymedia.R
-import androidx.compose.runtime.derivedStateOf
-import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntryFormScreen(
     modifier: Modifier = Modifier,
-    itemId: Int = -1, // -1 para nuevo, ID positivo para editar
+    itemId: Int = -1,
     onNavigateBack: () -> Unit,
+    viewModel: NotaViewModel = viewModel()
 ) {
-    val context = LocalContext.current
-    val viewModel: NotaViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return NotaViewModel(context) as T
-            }
-        }
-    )
 
-    var titulo by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-    var isTask by remember { mutableStateOf(false) }
-    var fechaVencimiento by remember { mutableStateOf<Date?>(null) }
-    var horaVencimiento by remember { mutableStateOf<Int?>(null) }
-    var minutoVencimiento by remember { mutableStateOf<Int?>(null) }
-    var nota by remember { mutableStateOf<NotaEntity?>(null) }
+    //Observar el estado del formulario
+    val formState by viewModel.formState.collectAsState()
+
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showMediaSheet by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
 
-    // Cargar nota
+    //Cargar nota si es edición
     LaunchedEffect(key1 = itemId) {
-        if (itemId != -1) {
-            Log.d("EntryFormScreen", "Iniciando carga para editar ID: $itemId")
-            val loadedNota = viewModel.obtenerPorId(itemId)
-            Log.d("EntryFormScreen", "Nota cargada: $loadedNota")
-            nota = loadedNota
-            loadedNota?.let {
-                titulo = it.titulo
-                descripcion = it.descripcion
-                isTask = it.tipo == TipoNota.TAREA
-                fechaVencimiento = it.fechaVencimiento
-                it.fechaVencimiento?.let { date ->
-                    val cal = Calendar.getInstance().apply { time = date }
-                    horaVencimiento = cal.get(Calendar.HOUR_OF_DAY)
-                    minutoVencimiento = cal.get(Calendar.MINUTE)
-                    Log.d("EntryFormScreen", "Cargada hora/min: ${horaVencimiento}:${minutoVencimiento}")
-                }
-                Log.d("EntryFormScreen", "Estados actualizados: titulo=$titulo, isTask=$isTask")
-            } ?: run {
-                Log.w("EntryFormScreen", "Nota no encontrada para ID $itemId - reset states")
-                titulo = ""
-                descripcion = ""
-                isTask = false
-                fechaVencimiento = null
-                horaVencimiento = null
-                minutoVencimiento = null
-            }
-        } else {
-            Log.d("EntryFormScreen", "Modo nuevo: reset estados")
-            nota = null
-            titulo = ""
-            descripcion = ""
-            isTask = false
-            fechaVencimiento = null
-            horaVencimiento = null
-            minutoVencimiento = null
-        }
+        viewModel.loadNota(itemId)
     }
 
     val noSeleccionada = stringResource(R.string.status_no_seleccionada)
     val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     val fechaHoraTexto by remember {
         derivedStateOf {
-            if (fechaVencimiento != null && horaVencimiento != null && minutoVencimiento != null) {
+            if (formState.fechaVencimiento != null && formState.horaVencimiento != null && formState.minutoVencimiento != null) {
                 val cal = Calendar.getInstance().apply {
-                    time = fechaVencimiento!!
-                    set(Calendar.HOUR_OF_DAY, horaVencimiento!!)
-                    set(Calendar.MINUTE, minutoVencimiento!!)
+                    time = formState.fechaVencimiento!!
+                    set(Calendar.HOUR_OF_DAY, formState.horaVencimiento!!)
+                    set(Calendar.MINUTE, formState.minutoVencimiento!!)
                 }
                 formatter.format(cal.time)
-            } else if (fechaVencimiento != null) {
+            } else if (formState.fechaVencimiento != null) {
                 val cal = Calendar.getInstance().apply {
-                    time = fechaVencimiento!!
+                    time = formState.fechaVencimiento!!
                     set(Calendar.HOUR_OF_DAY, 0)
                     set(Calendar.MINUTE, 0)
                 }
@@ -124,30 +70,10 @@ fun EntryFormScreen(
 
     val onGuardarClick = {
         coroutineScope.launch {
-            val tipo = if (isTask) TipoNota.TAREA else TipoNota.NOTA
-            val vencimientoFinal: Date? = if (isTask && fechaVencimiento != null) {
-                val cal = Calendar.getInstance().apply {
-                    time = fechaVencimiento!!
-                    set(Calendar.HOUR_OF_DAY, horaVencimiento ?: 0)
-                    set(Calendar.MINUTE, minutoVencimiento ?: 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-                cal.time
-            } else null
-            if (nota != null) {
-                // EDICIÓN
-                val updatedNota = nota!!.copy(
-                    titulo = titulo,
-                    descripcion = descripcion,
-                    tipo = tipo,
-                    fechaVencimiento = vencimientoFinal,
-                    fechaCreacion = Date()
-                )
-                viewModel.actualizar(updatedNota)
+            if (itemId == -1) {
+                viewModel.insertarNueva()
             } else {
-                // NUEVA
-                viewModel.insertarNueva(titulo, descripcion, tipo, vencimientoFinal)
+                viewModel.actualizar()
             }
             onNavigateBack()
         }
@@ -157,11 +83,12 @@ fun EntryFormScreen(
     Scaffold(
         topBar = {
             FormToolbar(
-                isTask,
-                onNavigateBack,
+                isTask = formState.isTask,
+                onNavigateBack = onNavigateBack,
                 onGuardar = onGuardarClick,
                 itemId = itemId
-            ) },
+            )
+        },
     ) { paddingValues ->
         Column(
             modifier = modifier
@@ -170,25 +97,28 @@ fun EntryFormScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            ClassificationSwitch(isTask) { isTask = it }
+            ClassificationSwitch(
+                isTask = formState.isTask,
+                onToggle = { viewModel.updateIsTask(it) }
+            )
 
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
-                value = titulo,
-                onValueChange = { titulo = it },
+                value = formState.titulo,
+                onValueChange = { viewModel.updateTitulo(it) },
                 label = { Text(stringResource(R.string.label_titulo)) },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
-                value = descripcion,
-                onValueChange = { descripcion = it },
+                value = formState.descripcion,
+                onValueChange = { viewModel.updateDescripcion(it) },
                 label = { Text(stringResource(R.string.label_descripcion)) },
                 modifier = Modifier.fillMaxWidth().height(120.dp),
                 maxLines = 5
             )
 
-            if (isTask) {
+            if (formState.isTask) {
                 Spacer(Modifier.height(16.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -202,7 +132,7 @@ fun EntryFormScreen(
                     Button(onClick = { showDatePicker = true }) {
                         Text(stringResource(R.string.button_seleccionar_fecha))
                     }
-                    if (fechaVencimiento != null) {
+                    if (formState.fechaVencimiento != null) {
                         Button(onClick = { showTimePicker = true }) {
                             Text(stringResource(R.string.button_seleccionar_hora))
                         }
@@ -219,15 +149,13 @@ fun EntryFormScreen(
     }
 
     if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = fechaVencimiento?.time ?: System.currentTimeMillis())
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = formState.fechaVencimiento?.time ?: System.currentTimeMillis())
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        fechaVencimiento = Date(millis)
-                        horaVencimiento = null
-                        minutoVencimiento = null
+                        viewModel.updateFechaVencimiento(Date(millis))
                         Log.d("EntryFormScreen", "Fecha seleccionada: $millis")
                     }
                     showDatePicker = false
@@ -244,15 +172,14 @@ fun EntryFormScreen(
     }
     if (showTimePicker) {
         val timePickerState = rememberTimePickerState(
-            initialHour = horaVencimiento ?: 0,
-            initialMinute = minutoVencimiento ?: 0
+            initialHour = formState.horaVencimiento ?: 0,
+            initialMinute = formState.minutoVencimiento ?: 0
         )
         TimePickerDialog(
             onDismissRequest = { showTimePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    horaVencimiento = timePickerState.hour
-                    minutoVencimiento = timePickerState.minute
+                    viewModel.updateHoraVencimiento(timePickerState.hour, timePickerState.minute)
                     Log.d("EntryFormScreen", "Hora seleccionada: ${timePickerState.hour}:${timePickerState.minute}")
                     showTimePicker = false
                 }) {
@@ -298,8 +225,7 @@ fun FormToolbar(
     isTask: Boolean,
     onNavigateBack: () -> Unit,
     onGuardar: () -> Unit,
-    itemId: Int,
-    modifier: Modifier = Modifier
+    itemId: Int
 ) {
     val containerColor = MaterialTheme.colorScheme.primary
     val contentColor = MaterialTheme.colorScheme.onPrimary

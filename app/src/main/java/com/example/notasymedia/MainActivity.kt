@@ -13,17 +13,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.notasymedia.data.entity.TipoNota
-import com.example.notasymedia.data.repository.NotaRepositoryFactory
 import com.example.notasymedia.ui.screens.DetailScreen
 import com.example.notasymedia.ui.screens.EntryFormScreen
 import com.example.notasymedia.ui.screens.MainScreen
 import com.example.notasymedia.ui.screens.MasterDetailLayout
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import com.example.notasymedia.viewmodel.NotaViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     // ViewModel para pruebas (temporal)
@@ -46,7 +41,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppContent(widthSizeClass: WindowWidthSizeClass) {
-    // 1. Crear el controlador de navegacion
+    //Crear el controlador de navegacion
     val navController = rememberNavController()
     if (widthSizeClass == WindowWidthSizeClass.Expanded) {
         MasterDetailLayout(
@@ -59,12 +54,12 @@ fun AppContent(widthSizeClass: WindowWidthSizeClass) {
             }
         )
     } else {
-        // 2. Definir las Rutas
+        //Definir las Rutas
         NavHost(
             navController = navController,
             startDestination = "main_list" // La pantalla de inicio
         ) {
-            // Ruta 1: Pantalla Principal (Lista)
+            //Pantalla Principal (Lista)
             composable("main_list") {
                 // Pasa las acciones de navegacion con tipos explicitos (Int para ID)
                 MainScreen(
@@ -72,7 +67,7 @@ fun AppContent(widthSizeClass: WindowWidthSizeClass) {
                     onNavigateToDetail = { id: Int -> navController.navigate("detail/$id") }
                 )
             }
-            // Ruta 2: Pantalla de Detalle
+            //Pantalla de Detalle
             composable(
                 route = "detail/{itemId}",
                 arguments = listOf(navArgument("itemId") { type = NavType.IntType })
@@ -85,7 +80,7 @@ fun AppContent(widthSizeClass: WindowWidthSizeClass) {
                 )
             }
 
-            // Ruta 3: Pantalla de Creacion/Edicion (Formulario)
+            //Pantalla de Creacion/Edicion (Formulario)
             composable(
                 route = "entry_form/{itemId}",
                 arguments = listOf(navArgument("itemId") { type = NavType.IntType })

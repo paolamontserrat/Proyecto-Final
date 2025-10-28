@@ -11,8 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notasymedia.R
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
+import com.example.notasymedia.viewmodel.NotaViewModel
 
 /**
  * Estado para el panel de detalle.
@@ -32,65 +34,43 @@ fun MasterDetailLayout(
     modifier: Modifier = Modifier,
     onNavigateToEdit: (Int) -> Unit = {}
 ) {
-    // Estado para el contenido del panel derecho
+    val viewModel: NotaViewModel = viewModel()
+
     var detailState by remember { mutableStateOf<DetailState>(DetailState.Placeholder) }
 
     Row(modifier = modifier.fillMaxSize()) {
-
-        // ========= PANEL MAESTRO (MainScreen) =========
         Column(modifier = Modifier.weight(0.4f).fillMaxHeight()) {
             MainScreen(
                 modifier = Modifier.fillMaxSize(),
                 onNavigateToForm = { id ->
-                    detailState = if (id == -1) {
-                        DetailState.NewForm
-                    } else {
-                        DetailState.EditForm(id)
-                    }
+                    detailState = if (id == -1) DetailState.NewForm else DetailState.EditForm(id)
                 },
                 onNavigateToDetail = { id ->
-                    // Para detalle: muestra DetailScreen en panel derecho
                     detailState = DetailState.ItemDetail(id)
-                }
+                },
+                viewModel = viewModel
             )
         }
 
-        // Separador visual
-        Spacer(
-            modifier = Modifier
-                .width(1.dp)
-                .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.primary)
-        )
+        Spacer(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.primary))
 
-        // ========= PANEL DETALLE =========
         Column(modifier = Modifier.weight(0.6f).fillMaxHeight()) {
             when (val current = detailState) {
-                is DetailState.Placeholder -> {
-                    PlaceholderDetailScreen()
-                }
+                is DetailState.Placeholder -> PlaceholderDetailScreen()
                 is DetailState.ItemDetail -> {
                     DetailScreen(
                         itemId = current.id,
-                        onNavigateToEdit = {
-                            detailState = DetailState.EditForm(current.id)
-                        },
-                        onNavigateBack = {
-                            detailState = DetailState.Placeholder
-                        }
+                        onNavigateToEdit = { detailState = DetailState.EditForm(current.id) },
+                        onNavigateBack = { detailState = DetailState.Placeholder },
+                        viewModel = viewModel
                     )
                 }
                 is DetailState.NewForm, is DetailState.EditForm -> {
-                    val formId = when (current) {
-                        is DetailState.NewForm -> -1
-                        is DetailState.EditForm -> current.id
-                        else -> -1
-                    }
+                    val formId = if (current is DetailState.NewForm) -1 else (current as DetailState.EditForm).id
                     EntryFormScreen(
                         itemId = formId,
-                        onNavigateBack = {
-                            detailState = DetailState.Placeholder
-                        },
+                        onNavigateBack = { detailState = DetailState.Placeholder },
+                        viewModel = viewModel,
                         modifier = Modifier.fillMaxSize()
                     )
                 }

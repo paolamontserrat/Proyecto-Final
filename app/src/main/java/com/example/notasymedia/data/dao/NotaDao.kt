@@ -5,7 +5,7 @@ import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.TipoNota
 import kotlinx.coroutines.flow.Flow
 
-@Dao // Marca como DAO para Room
+@Dao
 interface NotaDao {
 
     // Insertar una nueva nota/tarea

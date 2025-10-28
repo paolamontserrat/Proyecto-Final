@@ -7,44 +7,30 @@ import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.TipoNota
 import kotlinx.coroutines.flow.Flow
 
-// Repository: abstrae acceso a datos (BD, etc.)
-class NotaRepository(private val notaDao: NotaDao) {
+//Repository: abstrae acceso a datos (BD, etc.)
+interface NotaRepository{
 
-    // Insertar nueva nota/tarea
-    suspend fun insertar(nota: NotaEntity) {
-        notaDao.insertar(nota)
-    }
+    //Insertar nueva nota/tarea
+    suspend fun insertar(nota: NotaEntity) {}
 
-    // Actualizar
-    suspend fun actualizar(nota: NotaEntity) {
-        notaDao.actualizar(nota)
-    }
+    //Actualizar
+    suspend fun actualizar(nota: NotaEntity) {}
 
-    // Eliminar por ID
-    suspend fun eliminarPorId(id: Int) {
-        notaDao.eliminarPorId(id)
-    }
+    //Eliminar por ID
+    suspend fun eliminarPorId(id: Int) {}
 
-    // Obtener todas
-    fun obtenerTodas(): Flow<List<NotaEntity>> = notaDao.obtenerTodas()
+    //Obtener todas
+    fun obtenerTodas(): Flow<List<NotaEntity>>
 
-    // Obtener notas
-    fun obtenerNotas(): Flow<List<NotaEntity>> = notaDao.obtenerNotas(TipoNota.NOTA)
+    //Obtener notas
+    fun obtenerNotas(): Flow<List<NotaEntity>>
 
-    // Obtener tareas
-    fun obtenerTareas(): Flow<List<NotaEntity>> = notaDao.obtenerTareas(TipoNota.TAREA)
+    //Obtener tareas
+    fun obtenerTareas(): Flow<List<NotaEntity>>
 
-    // Obtener completadas
-    fun obtenerCompletadas(): Flow<List<NotaEntity>> = notaDao.obtenerCompletadas()
+    //Obtener completadas
+    fun obtenerCompletadas(): Flow<List<NotaEntity>>
 
-    // Obtener por ID
-    suspend fun obtenerPorId(id: Int): NotaEntity? = notaDao.obtenerPorId(id)
-}
-
-// Factory para crear el repo con DB
-object NotaRepositoryFactory {
-    fun crear(context: Context): NotaRepository {
-        val db = AppDatabase.obtenerInstancia(context)
-        return NotaRepository(db.notaDao())
-    }
+    //Obtener por ID
+    suspend fun obtenerPorId(id: Int): NotaEntity?
 }

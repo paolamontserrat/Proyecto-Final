@@ -11,7 +11,7 @@ import androidx.room.TypeConverters
 // Clase base de la BD Room
 @Database(
     entities = [NotaEntity::class],
-    version = 1, // Version inicial
+    version = 1,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -20,7 +20,7 @@ abstract class AppDatabase : RoomDatabase() {
     // Abstrae el DAO
     abstract fun notaDao(): NotaDao
 
-    // Patron singleton para instancia unica de BD
+    // Patron para instancia unica de BD
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null

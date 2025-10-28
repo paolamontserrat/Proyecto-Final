@@ -1,6 +1,5 @@
 package com.example.notasymedia.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
@@ -8,7 +7,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,15 +19,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource // <-- ¡IMPORTANTE!
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.viewmodel.NotaViewModel
-import com.example.notasymedia.R // <-- ¡IMPORTANTE!
+import com.example.notasymedia.R
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -40,23 +35,13 @@ fun DetailScreen(
     itemId: Int,
     onNavigateToEdit: (Int) -> Unit = {},
     onNavigateBack: () -> Unit = {},
-    onNavigateToDetail: (Int) -> Unit = {},
+    viewModel: NotaViewModel = viewModel()
 ) {
-    val context = LocalContext.current
-    val viewModel: NotaViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return NotaViewModel(context) as T
-            }
-        }
-    )
 
     var nota by remember { mutableStateOf<NotaEntity?>(null) }
 
     LaunchedEffect(itemId) {
-        val loadedNota = viewModel.obtenerPorId(itemId)
-        Log.d("DetailScreen", "Cargando nota con ID $itemId: $loadedNota")
-        nota = loadedNota
+        nota = viewModel.obtenerPorId(itemId)
     }
 
     Scaffold(
@@ -141,13 +126,13 @@ fun DetailToolbar(
         ),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-                // 6. Localización: contentDescription "Volver"
+                //Localización: contentDescription "Volver"
                 Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.action_volver))
             }
         },
         actions = {
             IconButton(onClick = { onNavigateToEdit(itemId) }) {
-                // 7. Localización: contentDescription "Editar"
+                //Localización: contentDescription "Editar"
                 Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.action_editar))
             }
         }
@@ -207,9 +192,9 @@ fun AttachmentThumbnail() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // 10. Localización: contentDescription "Adjunto"
+            //Localización: contentDescription "Adjunto"
             Icon(Icons.Filled.Image, contentDescription = stringResource(R.string.action_adjunto_generico), modifier = Modifier.size(40.dp))
-            // 11. Localización: Texto "Archivo"
+            //Localización: Texto "Archivo"
             Text(stringResource(R.string.label_archivo), style = MaterialTheme.typography.bodySmall)
         }
     }

@@ -6,28 +6,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import com.example.notasymedia.viewmodel.NotaViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.compose.ui.res.stringResource
 import com.example.notasymedia.R
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import java.text.SimpleDateFormat
@@ -38,16 +32,9 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     onNavigateToForm: (Int) -> Unit,
     onNavigateToDetail: (Int) -> Unit,
+    viewModel: NotaViewModel = viewModel()
 
 ) {
-    val context = LocalContext.current
-    val viewModel: NotaViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return NotaViewModel(context) as T
-            }
-        }
-    )
 
     var selectedTabIndex by remember { mutableStateOf(0) }
 
@@ -66,9 +53,9 @@ fun MainScreen(
     )
 
     Scaffold(
-        // 1. AppToolbar: Le pasamos el ID del recurso
+        //AppToolbar: Le pasamos el ID del recurso
         topBar = { AppToolbar(titleResId = R.string.title_notas_tareas) },
-        // 2. CustomFab: No se cambia aquí, se cambia en su definición
+        //CustomFab: No se cambia aquí, se cambia en su definición
         floatingActionButton = { CustomFab(onClick = { onNavigateToForm(-1) }) }
     ) { paddingValues ->
         Column(
@@ -195,7 +182,7 @@ fun AppToolbar(
 
 @Composable
 fun FilterTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit) {
-    // 11. Reemplazamos las cadenas fijas por IDs de recursos
+    //Reemplazamos las cadenas fijas por IDs de recursos
     val tabTitleResourceIds = listOf(
         R.string.tab_todas,
         R.string.tab_notas,
@@ -208,7 +195,7 @@ fun FilterTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit) {
             Tab(
                 selected = index == selectedTabIndex,
                 onClick = { onTabSelected(index) },
-                // 12. Uso de stringResource para el texto de la pestaña
+                //Uso de stringResource para el texto de la pestaña
                 text = { Text(stringResource(titleResId)) }
             )
         }
@@ -218,7 +205,7 @@ fun FilterTabs(selectedTabIndex: Int, onTabSelected: (Int) -> Unit) {
 @Composable
 fun CustomFab(onClick: () -> Unit) {
     FloatingActionButton(onClick = onClick) {
-        // 13. Uso de stringResource para contentDescription
+        //Uso de stringResource para contentDescription
         Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_crear_nuevo))
     }
 }

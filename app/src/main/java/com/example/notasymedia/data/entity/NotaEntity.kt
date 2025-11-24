@@ -15,10 +15,14 @@ data class NotaEntity(
     val fechaCreacion: Date, //Fecha de creacion
     val fechaVencimiento: Date? = null, //Solo para tareas, opcional
     val esCompletada: Boolean = false, //Para marcar como hecha (tareas)
-    val rutaAdjuntos: String? = null //Ruta o lista de adjuntos (por ahora no lo utilizamos)
+    val tipoMultimedia: String? = null, // "FOTO", "VIDEO", "AUDIO", "ARCHIVO"
+    val multimediaUri: String? = null //n URI del archivo guardado
 )
 
 // Enum para tipo: nota o tarea
 enum class TipoNota {
     NOTA, TAREA
+}
+enum class TipoMultimedia {
+    FOTO, VIDEO, AUDIO
 }

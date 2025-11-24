@@ -19,6 +19,8 @@ import com.example.notasymedia.ui.screens.MainScreen
 import com.example.notasymedia.ui.screens.MasterDetailLayout
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import com.example.notasymedia.viewmodel.NotaViewModel
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Text
 
 class MainActivity : ComponentActivity() {
     // ViewModel para pruebas (temporal)
@@ -61,10 +63,13 @@ fun AppContent(widthSizeClass: WindowWidthSizeClass) {
         ) {
             //Pantalla Principal (Lista)
             composable("main_list") {
-                // Pasa las acciones de navegacion con tipos explicitos (Int para ID)
                 MainScreen(
-                    onNavigateToForm = { navController.navigate("entry_form/$id") },
-                    onNavigateToDetail = { id: Int -> navController.navigate("detail/$id") }
+                    onNavigateToForm = { id: Int ->  // ← Agrega el parámetro id: Int
+                        navController.navigate("entry_form/$id")
+                    },
+                    onNavigateToDetail = { id: Int ->
+                        navController.navigate("detail/$id")
+                    }
                 )
             }
             //Pantalla de Detalle

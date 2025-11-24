@@ -51,6 +51,12 @@
     <string name="action_adjunto_archivo">Datei auswählen</string>
     <string name="action_adjunto_descripcion">Beschreibung schreiben</string>
     <string name="action_adjunto_generico">Anhang</string>
+    <string name="action_guardar">Speichern</string>
+    <string name="action_confirmar">Bestätigen</string>
+    <string name="action_adjunto_video">Video anhängen</string>
+    <string name="label_adjuntos">Adjuntos Multimedia</string>
+    <string name="action_cancelar">Cancelar</string>
+
 
     <string name="status_completada">Erledigt</string>
     <string name="status_no_seleccionada">Nicht ausgewählt</string>

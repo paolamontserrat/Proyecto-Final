@@ -35,6 +35,12 @@
     <string name="action_desmarcar">Desmarcar</string>
     <string name="action_eliminar_tarea">Excluir Tarefa</string>
     <string name="action_posponer_tarea">Adiar Tarefa</string>
+    <string name="action_guardar">Salvar</string>
+    <string name="action_confirmar">Confirmar</string>
+    <string name="action_adjunto_video">Anexar Vídeo</string>
+    <string name="label_adjuntos">Anexar Multimedia</string>
+    <string name="action_cancelar">Cancelar</string>
+
 
     <string name="button_guardar">Salvar</string>
     <string name="button_actualizar">Atualizar</string>

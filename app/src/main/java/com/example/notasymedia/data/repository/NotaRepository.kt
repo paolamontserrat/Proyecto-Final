@@ -1,23 +1,20 @@
 package com.example.notasymedia.data.repository
 
-import android.content.Context
-import com.example.notasymedia.data.AppDatabase
-import com.example.notasymedia.data.dao.NotaDao
+import com.example.notasymedia.data.entity.MultimediaEntity
 import com.example.notasymedia.data.entity.NotaEntity
-import com.example.notasymedia.data.entity.TipoNota
 import kotlinx.coroutines.flow.Flow
 
 //Repository: abstrae acceso a datos (BD, etc.)
 interface NotaRepository{
 
     //Insertar nueva nota/tarea
-    suspend fun insertar(nota: NotaEntity) {}
+    suspend fun insertar(nota: NotaEntity): Long
 
     //Actualizar
-    suspend fun actualizar(nota: NotaEntity) {}
+    suspend fun actualizar(nota: NotaEntity)
 
     //Eliminar por ID
-    suspend fun eliminarPorId(id: Int) {}
+    suspend fun eliminarPorId(id: Int)
 
     //Obtener todas
     fun obtenerTodas(): Flow<List<NotaEntity>>
@@ -33,4 +30,10 @@ interface NotaRepository{
 
     //Obtener por ID
     suspend fun obtenerPorId(id: Int): NotaEntity?
+
+    // Multimedia
+    suspend fun insertarMultimedia(multimedia: List<MultimediaEntity>)
+    suspend fun obtenerMultimediaPorNotaId(notaId: Int): List<MultimediaEntity>
+    suspend fun eliminarMultimediaPorNotaId(notaId: Int)
+    suspend fun eliminarMultimedia(multimedia: MultimediaEntity)
 }

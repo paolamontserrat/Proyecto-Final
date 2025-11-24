@@ -2,14 +2,19 @@ package com.example.notasymedia.data.repository
 
 import android.content.Context
 import com.example.notasymedia.data.AppDatabase
+import com.example.notasymedia.data.dao.MultimediaDao
 import com.example.notasymedia.data.dao.NotaDao
+import com.example.notasymedia.data.entity.MultimediaEntity
 import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.TipoNota
 import kotlinx.coroutines.flow.Flow
 
-class OfflineNotaRepository(private val notaDao: NotaDao) : NotaRepository {
-    override suspend fun insertar(nota: NotaEntity) {
-        notaDao.insertar(nota)
+class OfflineNotaRepository(
+    private val notaDao: NotaDao,
+    private val multimediaDao: MultimediaDao
+) : NotaRepository {
+    override suspend fun insertar(nota: NotaEntity): Long {
+        return notaDao.insertar(nota)
     }
 
     //Actualizar
@@ -36,10 +41,28 @@ class OfflineNotaRepository(private val notaDao: NotaDao) : NotaRepository {
 
     //Obtener por ID
     override suspend fun obtenerPorId(id: Int): NotaEntity? = notaDao.obtenerPorId(id)
+
+    // Multimedia
+    override suspend fun insertarMultimedia(multimedia: List<MultimediaEntity>) {
+        multimediaDao.insertarLista(multimedia)
+    }
+
+    override suspend fun obtenerMultimediaPorNotaId(notaId: Int): List<MultimediaEntity> {
+        return multimediaDao.obtenerListaPorNotaId(notaId)
+    }
+
+    override suspend fun eliminarMultimediaPorNotaId(notaId: Int) {
+        multimediaDao.eliminarPorNotaId(notaId)
+    }
+
+    override suspend fun eliminarMultimedia(multimedia: MultimediaEntity) {
+        multimediaDao.eliminar(multimedia)
+    }
 }
+
 object NotaRepositoryFactory {
     fun crear(context: Context): NotaRepository {
         val db = AppDatabase.obtenerInstancia(context)
-        return OfflineNotaRepository(db.notaDao())
+        return OfflineNotaRepository(db.notaDao(), db.multimediaDao())
     }
 }

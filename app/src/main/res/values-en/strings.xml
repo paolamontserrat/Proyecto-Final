@@ -10,6 +10,12 @@
     <string name="title_selecciona_fuente">Select Media Source</string>
     <string name="label_adjuntar_multimedia">Attach Media (RF-02)</string>
     <string name="label_adjuntos_multimedia">Media Attachments</string>
+    <string name="action_guardar">Save</string>
+    <string name="action_confirmar">Confirm</string>
+    <string name="action_adjunto_video">Attach Video</string>
+    <string name="action_cancelar">Cancelar</string>
+
+    <string name="label_adjuntos">Add Multimedia</string>
 
     <string name="label_titulo">Title</string>
     <string name="label_descripcion">Description</string>

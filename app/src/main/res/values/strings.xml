@@ -51,6 +51,11 @@
     <string name="action_adjunto_archivo">Seleccionar Archivo</string>
     <string name="action_adjunto_descripcion">Escribir descripción</string>
     <string name="action_adjunto_generico">Adjunto</string>
+    <string name="action_guardar">Guardar</string>
+    <string name="action_confirmar">Confirmar</string>
+    <string name="action_adjunto_video">Video</string>
+    <string name="label_adjuntos">Adjuntos Multimedia</string>
+    <string name="action_cancelar">Cancelar</string>
 
 
     <string name="status_completada">Completada</string>

@@ -1,5 +1,6 @@
 package com.example.notasymedia.ui.screens
 
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
@@ -7,56 +8,66 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.notasymedia.ui.theme.NotasYMediaTheme
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.example.notasymedia.R
 import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.TipoNota
+import com.example.notasymedia.ui.theme.NotasYMediaTheme
 import com.example.notasymedia.viewmodel.NotaViewModel
-import com.example.notasymedia.R
+import com.example.notasymedia.viewmodel.MultimediaState
+import com.example.notasymedia.viewmodel.toState
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.ui.PlayerView
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.compose.material.icons.filled.Image  // Para el ícono de imagen
+import androidx.compose.material.icons.filled.Timer  // Para el ícono de timer (si usas en toolbar o bottom bar)
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
-    modifier: Modifier = Modifier,
     itemId: Int,
-    onNavigateToEdit: (Int) -> Unit = {},
+    onNavigateToEdit: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
     viewModel: NotaViewModel = viewModel()
 ) {
-
     var nota by remember { mutableStateOf<NotaEntity?>(null) }
+    var multimedia by remember { mutableStateOf<List<MultimediaState>>(emptyList()) }
 
     LaunchedEffect(itemId) {
         nota = viewModel.obtenerPorId(itemId)
+        multimedia = viewModel.obtenerMultimedia(itemId).map { it.toState() }
     }
 
     Scaffold(
-        topBar = { DetailToolbar(itemId = itemId, onNavigateToEdit = onNavigateToEdit, onNavigateBack = onNavigateBack) },
-        bottomBar = { if (nota?.tipo == TipoNota.TAREA) TaskActionsBottomBar() } // Solo mostrar si es tarea
+        topBar = {
+            DetailToolbar(
+                itemId = itemId,
+                onNavigateToEdit = onNavigateToEdit,
+                onNavigateBack = onNavigateBack
+            )
+        },
+        bottomBar = { if (nota?.tipo == TipoNota.TAREA) TaskActionsBottomBar() }
     ) { paddingValues ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
             if (nota == null) {
-                //Localización: "Cargando nota..."
                 Text(stringResource(R.string.status_cargando_nota), style = MaterialTheme.typography.bodyMedium)
             } else {
                 Text(
@@ -68,7 +79,6 @@ fun DetailScreen(
                     if (nota!!.tipo == TipoNota.TAREA) {
                         Icon(
                             Icons.Filled.CheckCircle,
-                            // Localización: contentDescription
                             contentDescription = stringResource(R.string.status_completada),
                             tint = if (nota!!.esCompletada) Color.Green else Color.Gray,
                             modifier = Modifier.size(24.dp)
@@ -92,121 +102,83 @@ fun DetailScreen(
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Spacer(Modifier.height(24.dp))
-                // Localización: Encabezado "Adjuntos Multimedia"
                 Text(stringResource(R.string.label_adjuntos_multimedia), style = MaterialTheme.typography.titleMedium)
-                AttachmentRow()
+
+                Spacer(Modifier.height(8.dp))
+
+                if (multimedia.isEmpty()) {
+                    Text("Sin archivos adjuntos", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        multimedia.forEach { item ->
+                            MultimediaItemView(item = item, onRemove = null)
+                        }
+                    }
+                }
+                
+                Spacer(Modifier.height(32.dp))
             }
         }
     }
 }
 
-// Barra Superior para la vista de Detalle
+@Composable
+fun VideoPlayer(videoUri: Uri, modifier: Modifier = Modifier.fillMaxWidth().height(200.dp)) {
+    val context = LocalContext.current
+    val exoPlayer = remember {
+        SimpleExoPlayer.Builder(context).build().apply {
+            setMediaItem(MediaItem.fromUri(videoUri))
+            prepare()
+        }
+    }
+
+    AndroidView(
+        factory = { ctx ->
+            PlayerView(ctx).apply { player = exoPlayer }
+        },
+        modifier = modifier
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailToolbar(
     itemId: Int,
-    onNavigateToEdit: (Int) -> Unit,
+    onNavigateToEdit: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    val containerColor = MaterialTheme.colorScheme.primary
-    val contentColor = MaterialTheme.colorScheme.onPrimary
-
+    // Implement toolbar here if not already
     TopAppBar(
-        title = {
-            Text(
-                text = "",
-                style = MaterialTheme.typography.titleLarge
-            )
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = containerColor,
-            titleContentColor = contentColor,
-            navigationIconContentColor = contentColor,
-            actionIconContentColor = contentColor
-        ),
+        title = { Text("Detalle") },
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-                //Localización: contentDescription "Volver"
-                Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.action_volver))
+                Icon(Icons.Default.ArrowBack, null)
             }
         },
         actions = {
-            IconButton(onClick = { onNavigateToEdit(itemId) }) {
-                //Localización: contentDescription "Editar"
-                Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.action_editar))
+            IconButton(onClick = onNavigateToEdit) {
+                Icon(Icons.Default.Edit, null)
             }
         }
     )
 }
 
-// Barra Inferior con Acciones de Tarea (RF-08)
 @Composable
 fun TaskActionsBottomBar() {
     BottomAppBar(
         actions = {
-            // Posponer Tarea
-            Button(onClick = { /* Posponer */ },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                modifier = Modifier.weight(1f)) {
-                // Localización: contentDescription y texto
-                Icon(Icons.Filled.Timer, contentDescription = stringResource(R.string.action_posponer_tarea))
+            Button(onClick = { /* Posponer */ }, modifier = Modifier.weight(1f)) {
+                Icon(Icons.Filled.Timer, null)
                 Spacer(Modifier.width(4.dp))
-                Text(stringResource(R.string.action_posponer_tarea))
+                Text("Posponer")
             }
-
             Spacer(Modifier.width(8.dp))
-
-            // Eliminar Tarea
-            Button(onClick = { /* Eliminar */ },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                modifier = Modifier.weight(1f)) {
-                //Localización: contentDescription y texto
-                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_eliminar_tarea))
+            Button(onClick = { /* Eliminar */ }, modifier = Modifier.weight(1f)) {
+                Icon(Icons.Filled.Delete, null)
                 Spacer(Modifier.width(4.dp))
-                Text(stringResource(R.string.action_eliminar_tarea))
+                Text("Eliminar")
             }
         },
         modifier = Modifier.fillMaxWidth().height(64.dp)
     )
-}
-
-// Fila de miniaturas de adjuntos (RF-12)
-@Composable
-fun AttachmentRow() {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(3) { // 3 miniaturas de placeholder
-            AttachmentThumbnail()
-        }
-    }
-}
-
-// Miniatura individual
-@Composable
-fun AttachmentThumbnail() {
-    Surface(
-        modifier = Modifier.size(100.dp),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            //Localización: contentDescription "Adjunto"
-            Icon(Icons.Filled.Image, contentDescription = stringResource(R.string.action_adjunto_generico), modifier = Modifier.size(40.dp))
-            //Localización: Texto "Archivo"
-            Text(stringResource(R.string.label_archivo), style = MaterialTheme.typography.bodySmall)
-        }
-    }
-}
-
-
-@Preview(showBackground = true, locale = "en")
-@Composable
-fun PreviewDetailScreen() {
-    NotasYMediaTheme {
-        DetailScreen(itemId = 42
-
-        )
-    }
 }

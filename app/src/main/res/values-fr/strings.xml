@@ -10,6 +10,9 @@
     <string name="title_selecciona_fuente">Sélectionner la source média</string>
     <string name="label_adjuntar_multimedia">Joindre média (RF-02)</string>
     <string name="label_adjuntos_multimedia">Pièces jointes média</string>
+    <string name="action_guardar">Enregistrer</string>
+    <string name="action_confirmar">Confirmer</string>
+    <string name="action_adjunto_video">Joindre Vidéo</string>
 
     <string name="label_titulo">Titre</string>
     <string name="label_descripcion">Description</string>
@@ -19,6 +22,9 @@
     <string name="label_fecha_vencimiento">Date d\'échéance: %s</string>
     <string name="label_archivo">Fichier</string>
     <string name="label_vence">Expire le: %s</string>
+    <string name="label_adjuntos">Adjuntos Multimedia</string>
+    <string name="action_cancelar">Cancelar</string>
+
 
     <string name="tab_todas">Toutes</string>
     <string name="tab_notas">Notes</string>

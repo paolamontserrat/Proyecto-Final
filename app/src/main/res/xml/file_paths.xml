@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- Para archivos en storage/emulated/0/Pictures, Documents, etc. -->
     <external-path name="external_files" path="." />
-
-    <!-- Para getExternalFilesDir() -->
     <external-files-path name="external_files" path="." />
-
-    <!-- Para getFilesDir() interno -->
     <files-path name="files" path="." />
-
-    <!-- Para cache -->
     <cache-path name="cache" path="." />
+    <cache-path name="images" path="images/" />
+    <cache-path name="videos" path="videos/" />
+    <cache-path name="audio" path="audio/" />
 </paths>

@@ -20,7 +20,8 @@ data class FormState(
     val isTask: Boolean = false,
     val fechaVencimiento: Date? = null,
     val horaVencimiento: Int? = null,
-    val minutoVencimiento: Int? = null
+    val minutoVencimiento: Int? = null,
+    val rutaAdjuntos: String? = null
 )
 
 class NotaViewModel(application: Application) : AndroidViewModel(application) {
@@ -51,7 +52,8 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
                     },
                     minutoVencimiento = nota.fechaVencimiento?.let { date ->
                         java.util.Calendar.getInstance().apply { time = date }.get(java.util.Calendar.MINUTE)
-                    }
+                    },
+                    rutaAdjuntos = nota.rutaAdjuntos
                 )
             } else {
                 FormState() //Estado vacio para nueva nota
@@ -105,7 +107,8 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
                 descripcion = state.descripcion,
                 tipo = tipo,
                 fechaCreacion = Date(),
-                fechaVencimiento = vencimientoFinal
+                fechaVencimiento = vencimientoFinal,
+                rutaAdjuntos = state.rutaAdjuntos
             )
             repository.insertar(nuevaNota)
             resetForm() //Resetear el formulario tras guardar
@@ -159,6 +162,13 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             repository.eliminarPorId(id)
         }
+    }
+
+    //Agregar adjunti
+    fun agregarAdjunto(ruta: String) {
+        val current = _formState.value.rutaAdjuntos ?: ""
+        val updated = if (current.isNotEmpty()) "$current,$ruta" else ruta
+        _formState.value = _formState.value.copy(rutaAdjuntos = updated)
     }
 
     //Resetear el formulario

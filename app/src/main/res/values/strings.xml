@@ -70,4 +70,27 @@
 
     <string name="label_hora_vencimiento">Hora de vencimiento:</string>
     <string name="button_seleccionar_hora">Seleccionar Hora</string>
+
+    <string name="permiso_necesario_titulo">Permiso necesario</string>
+    <string name="permiso_necesario_descripcion">Has denegado el permiso de notificaciones varias veces. Para recibir recordatorios, debes habilitarlo manualmente desde la Configuración.</string>
+    <string name="ir_a_configuracion">Ir a Configuración</string>
+
+    <string name="permiso_camara_titulo">Permiso de Cámara</string>
+    <string name="permiso_camara_descripcion">La cámara es necesaria para tomar fotos y videos. Por favor, habilítala en Configuración.</string>
+    <string name="permiso_audio_titulo">Permiso de Audio</string>
+    <string name="permiso_audio_descripcion">El micrófono es necesario para grabar notas de voz. Por favor, habilítalo en Configuración.</string>
+
+    <string name="dialog_audio_title_finished">Grabación finalizada</string>
+    <string name="dialog_audio_title_recording">Grabando audio...</string>
+    <string name="dialog_audio_title_start">Grabar nota de voz</string>
+    <string name="dialog_audio_body_saved">Audio guardado</string>
+    <string name="dialog_audio_body_time">Tiempo: %s</string>
+    <string name="dialog_audio_body_prompt">Pulsa INICIAR GRABACIÓN para comenzar</string>
+    <string name="button_start_recording">Iniciar Grabación</string>
+    <string name="button_stop_recording">Detener</string>
+    <string name="button_accept">Aceptar</string>
+    <string name="dialog_attachments_empty">Sin archivos adjuntos</string>
+    <string name="action_adjuntar">Adjuntar</string>
+    <string name="button_tomar_foto">Tomar Foto</string>
+    <string name="button_grabar_video">Grabar Video</string>
 </resources>

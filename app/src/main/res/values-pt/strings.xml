@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Notas e Mídia</string>
+    <string name="app_name">NotasEMídia</string>
 
     <string name="title_notas_tareas">Notas e Tarefas</string>
     <string name="title_nueva_nota">Nova Nota</string>
@@ -18,7 +18,7 @@
     <string name="label_tipo">Tipo: %s</string>
     <string name="label_fecha_vencimiento">Data de Vencimento: %s</string>
     <string name="label_archivo">Arquivo</string>
-    <string name="label_vence">Vence em: %s</string>
+    <string name="label_vence">Vence: %s</string>
 
     <string name="tab_todas">Todas</string>
     <string name="tab_notas">Notas</string>
@@ -35,12 +35,6 @@
     <string name="action_desmarcar">Desmarcar</string>
     <string name="action_eliminar_tarea">Excluir Tarefa</string>
     <string name="action_posponer_tarea">Adiar Tarefa</string>
-    <string name="action_guardar">Salvar</string>
-    <string name="action_confirmar">Confirmar</string>
-    <string name="action_adjunto_video">Anexar Vídeo</string>
-    <string name="label_adjuntos">Anexar Multimedia</string>
-    <string name="action_cancelar">Cancelar</string>
-
 
     <string name="button_guardar">Salvar</string>
     <string name="button_actualizar">Atualizar</string>
@@ -57,6 +51,11 @@
     <string name="action_adjunto_archivo">Selecionar Arquivo</string>
     <string name="action_adjunto_descripcion">Escrever descrição</string>
     <string name="action_adjunto_generico">Anexo</string>
+    <string name="action_guardar">Salvar</string>
+    <string name="action_confirmar">Confirmar</string>
+    <string name="action_adjunto_video">Vídeo</string>
+    <string name="label_adjuntos">Anexos de Mídia</string>
+    <string name="action_cancelar">Cancelar</string>
 
     <string name="status_completada">Concluída</string>
     <string name="status_no_seleccionada">Não selecionada</string>
@@ -66,8 +65,31 @@
 
     <string name="placeholder_detail_title">Selecione uma Nota ou Tarefa</string>
     <string name="placeholder_detail_subtitle">Para ver os detalhes neste painel</string>
-    <string name="placeholder_miniaturas">--- Placeholder: Linha rolável de miniaturas (AttachmentRow) ---</string>
+    <string name="placeholder_miniaturas">--- Espaço reservado: Linha de miniaturas rolável (AttachmentRow) ---</string>
 
-    <string name="label_hora_vencimiento">Hora de expiração:</string>
+    <string name="label_hora_vencimiento">Hora de vencimento:</string>
     <string name="button_seleccionar_hora">Selecionar Hora</string>
+
+    <string name="permiso_necesario_titulo">Permissão Necessária</string>
+    <string name="permiso_necesario_descripcion">Você negou a permissão de notificações permanentemente. Para receber lembretes, você deve ativá-la manualmente nas Configurações.</string>
+    <string name="ir_a_configuracion">Ir para Configurações</string>
+
+    <string name="permiso_camara_titulo">Permissão de Câmera</string>
+    <string name="permiso_camara_descripcion">A câmera é necessária para tirar fotos e vídeos. Por favor, ative-a nas Configurações.</string>
+    <string name="permiso_audio_titulo">Permissão de Áudio</string>
+    <string name="permiso_audio_descripcion">O microfone é necessário para gravar notas de voz. Por favor, ative-o nas Configurações.</string>
+
+    <string name="dialog_audio_title_finished">Gravação finalizada</string>
+    <string name="dialog_audio_title_recording">Gravando áudio...</string>
+    <string name="dialog_audio_title_start">Gravar nota de voz</string>
+    <string name="dialog_audio_body_saved">Áudio salvo</string>
+    <string name="dialog_audio_body_time">Tempo: %s</string>
+    <string name="dialog_audio_body_prompt">Pressione INICIAR GRAVAÇÃO para começar</string>
+    <string name="button_start_recording">Iniciar Gravação</string>
+    <string name="button_stop_recording">Parar</string>
+    <string name="button_accept">Aceitar</string>
+    <string name="dialog_attachments_empty">Sem anexos</string>
+    <string name="action_adjuntar">Anexar</string>
+    <string name="button_tomar_foto">Tirar Foto</string>
+    <string name="button_grabar_video">Gravar Vídeo</string>
 </resources>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Notizen und Medien</string>
+    <string name="app_name">NotizenUndMedien</string>
 
     <string name="title_notas_tareas">Notizen und Aufgaben</string>
     <string name="title_nueva_nota">Neue Notiz</string>
     <string name="title_nueva_tarea">Neue Aufgabe</string>
-    <string name="title_actualizar_tarea">Aufgabe Aktualisieren</string>
-    <string name="title_actualizar_nota">Note Aktualisieren</string>
+    <string name="title_actualizar_tarea">Aufgabe aktualisieren</string>
+    <string name="title_actualizar_nota">Notiz aktualisieren</string>
     <string name="title_selecciona_fuente">Medienquelle auswählen</string>
     <string name="label_adjuntar_multimedia">Medien anhängen (RF-02)</string>
     <string name="label_adjuntos_multimedia">Medienanhänge</string>
@@ -53,10 +53,9 @@
     <string name="action_adjunto_generico">Anhang</string>
     <string name="action_guardar">Speichern</string>
     <string name="action_confirmar">Bestätigen</string>
-    <string name="action_adjunto_video">Video anhängen</string>
-    <string name="label_adjuntos">Adjuntos Multimedia</string>
-    <string name="action_cancelar">Cancelar</string>
-
+    <string name="action_adjunto_video">Video</string>
+    <string name="label_adjuntos">Medienanhänge</string>
+    <string name="action_cancelar">Abbrechen</string>
 
     <string name="status_completada">Erledigt</string>
     <string name="status_no_seleccionada">Nicht ausgewählt</string>
@@ -65,9 +64,32 @@
     <string name="status_completada_fecha">Erledigt am %s</string>
 
     <string name="placeholder_detail_title">Wählen Sie eine Notiz oder Aufgabe</string>
-    <string name="placeholder_detail_subtitle">Um die Details in diesem Bereich anzuzeigen</string>
-    <string name="placeholder_miniaturas">--- Platzhalter: Scrollbare Reihe von Miniaturbildern (AttachmentRow) ---</string>
+    <string name="placeholder_detail_subtitle">Um Details in diesem Feld anzuzeigen</string>
+    <string name="placeholder_miniaturas">--- Platzhalter: Scrollbare Zeile von Miniaturansichten (AttachmentRow) ---</string>
 
-    <string name="label_hora_vencimiento">Fälligkeitszeit:</string>
-    <string name="button_seleccionar_hora">Zeit auswählen</string>
+    <string name="label_hora_vencimiento">Fällige Zeit:</string>
+    <string name="button_seleccionar_hora">Uhrzeit auswählen</string>
+
+    <string name="permiso_necesario_titulo">Berechtigung erforderlich</string>
+    <string name="permiso_necesario_descripcion">Sie haben die Benachrichtigungsberechtigung dauerhaft verweigert. Um Erinnerungen zu erhalten, müssen Sie diese manuell in den Einstellungen aktivieren.</string>
+    <string name="ir_a_configuracion">Zu den Einstellungen gehen</string>
+
+    <string name="permiso_camara_titulo">Kameraberechtigung</string>
+    <string name="permiso_camara_descripcion">Die Kamera wird benötigt, um Fotos und Videos aufzunehmen. Bitte aktivieren Sie diese in den Einstellungen.</string>
+    <string name="permiso_audio_titulo">Audioberechtigung</string>
+    <string name="permiso_audio_descripcion">Das Mikrofon wird benötigt, um Sprachnotizen aufzunehmen. Bitte aktivieren Sie diese in den Einstellungen.</string>
+
+    <string name="dialog_audio_title_finished">Aufnahme beendet</string>
+    <string name="dialog_audio_title_recording">Audio wird aufgenommen...</string>
+    <string name="dialog_audio_title_start">Sprachnotiz aufnehmen</string>
+    <string name="dialog_audio_body_saved">Audio gespeichert</string>
+    <string name="dialog_audio_body_time">Zeit: %s</string>
+    <string name="dialog_audio_body_prompt">Drücken Sie AUFNAHME STARTEN, um zu beginnen</string>
+    <string name="button_start_recording">Aufnahme starten</string>
+    <string name="button_stop_recording">Stoppen</string>
+    <string name="button_accept">Akzeptieren</string>
+    <string name="dialog_attachments_empty">Keine Anhänge</string>
+    <string name="action_adjuntar">Anhängen</string>
+    <string name="button_tomar_foto">Foto aufnehmen</string>
+    <string name="button_grabar_video">Video aufnehmen</string>
 </resources>

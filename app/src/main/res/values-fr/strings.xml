@@ -1,50 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Notes et Médias</string>
+    <string name="app_name">NotesEtMédias</string>
 
-    <string name="title_notas_tareas">Notes et tâches</string>
-    <string name="title_nueva_nota">Nouvelle note</string>
-    <string name="title_nueva_tarea">Nouvelle tâche</string>
-    <string name="title_actualizar_tarea">Mettre à jour la tâche</string>
-    <string name="title_actualizar_nota">Mettre à jour la note</string>
-    <string name="title_selecciona_fuente">Sélectionner la source média</string>
-    <string name="label_adjuntar_multimedia">Joindre média (RF-02)</string>
-    <string name="label_adjuntos_multimedia">Pièces jointes média</string>
-    <string name="action_guardar">Enregistrer</string>
-    <string name="action_confirmar">Confirmer</string>
-    <string name="action_adjunto_video">Joindre Vidéo</string>
+    <string name="title_notas_tareas">Notes et Tâches</string>
+    <string name="title_nueva_nota">Nouvelle Note</string>
+    <string name="title_nueva_tarea">Nouvelle Tâche</string>
+    <string name="title_actualizar_tarea">Modifier la Tâche</string>
+    <string name="title_actualizar_nota">Modifier la Note</string>
+    <string name="title_selecciona_fuente">Sélectionner la Source Média</string>
+    <string name="label_adjuntar_multimedia">Joindre Média (RF-02)</string>
+    <string name="label_adjuntos_multimedia">Pièces Jointes Média</string>
 
     <string name="label_titulo">Titre</string>
     <string name="label_descripcion">Description</string>
     <string name="label_nota">Note</string>
     <string name="label_tarea">Tâche</string>
-    <string name="label_tipo">Type: %s</string>
-    <string name="label_fecha_vencimiento">Date d\'échéance: %s</string>
+    <string name="label_tipo">Type : %s</string>
+    <string name="label_fecha_vencimiento">Date d\'échéance : %s</string>
     <string name="label_archivo">Fichier</string>
-    <string name="label_vence">Expire le: %s</string>
-    <string name="label_adjuntos">Adjuntos Multimedia</string>
-    <string name="action_cancelar">Cancelar</string>
-
+    <string name="label_vence">Échéance : %s</string>
 
     <string name="tab_todas">Toutes</string>
     <string name="tab_notas">Notes</string>
     <string name="tab_tareas">Tâches</string>
-    <string name="tab_cumplidas">Complétées</string>
+    <string name="tab_cumplidas">Terminées</string>
 
     <string name="action_buscar">Rechercher</string>
     <string name="action_menu">Menu</string>
     <string name="action_volver">Retour</string>
     <string name="action_editar">Modifier</string>
-    <string name="action_crear_nuevo">Créer nouveau</string>
+    <string name="action_crear_nuevo">Créer Nouveau</string>
     <string name="action_eliminar">Supprimer</string>
-    <string name="action_completar">Compléter</string>
+    <string name="action_completar">Terminer</string>
     <string name="action_desmarcar">Démarquer</string>
-    <string name="action_eliminar_tarea">Supprimer la tâche</string>
-    <string name="action_posponer_tarea">Reporter la tâche</string>
+    <string name="action_eliminar_tarea">Supprimer Tâche</string>
+    <string name="action_posponer_tarea">Reporter Tâche</string>
 
-    <string name="button_guardar">Enregistrer</string>
+    <string name="button_guardar">Sauvegarder</string>
     <string name="button_actualizar">Mettre à jour</string>
-    <string name="button_seleccionar_fecha">Sélectionner la date</string>
+    <string name="button_seleccionar_fecha">Sélectionner Date</string>
     <string name="button_ok">OK</string>
     <string name="button_cancelar">Annuler</string>
 
@@ -55,19 +49,47 @@
     <string name="action_adjunto_foto">Photo/Vidéo</string>
     <string name="action_adjunto_audio">Enregistrer Audio</string>
     <string name="action_adjunto_archivo">Sélectionner Fichier</string>
-    <string name="action_adjunto_descripcion">Écrire une description</string>
+    <string name="action_adjunto_descripcion">Écrire description</string>
     <string name="action_adjunto_generico">Pièce jointe</string>
+    <string name="action_guardar">Sauvegarder</string>
+    <string name="action_confirmar">Confirmer</string>
+    <string name="action_adjunto_video">Vidéo</string>
+    <string name="label_adjuntos">Pièces Jointes Média</string>
+    <string name="action_cancelar">Annuler</string>
 
-    <string name="status_completada">Complétée</string>
+    <string name="status_completada">Terminée</string>
     <string name="status_no_seleccionada">Non sélectionnée</string>
     <string name="status_cargando_nota">Chargement de la note...</string>
     <string name="status_pendiente">En attente</string>
-    <string name="status_completada_fecha">Complétée le %s</string>
+    <string name="status_completada_fecha">Terminée le %s</string>
 
-    <string name="placeholder_detail_title">Sélectionnez une note ou une tâche</string>
-    <string name="placeholder_detail_subtitle">Pour voir les détails dans ce panneau</string>
-    <string name="placeholder_miniaturas">--- Espace réservé: Ligne défilante de miniatures (AttachmentRow) ---</string>
+    <string name="placeholder_detail_title">Sélectionnez une Note ou une Tâche</string>
+    <string name="placeholder_detail_subtitle">Pour afficher les détails dans ce panneau</string>
+    <string name="placeholder_miniaturas">--- Espace réservé : Ligne défilante de vignettes (AttachmentRow) ---</string>
 
-    <string name="label_hora_vencimiento">Heure d\'expiration :</string>
-    <string name="button_seleccionar_hora">Sélectionner l\'heure</string>
+    <string name="label_hora_vencimiento">Heure d\'échéance :</string>
+    <string name="button_seleccionar_hora">Sélectionner Heure</string>
+
+    <string name="permiso_necesario_titulo">Autorisation requise</string>
+    <string name="permiso_necesario_descripcion">Vous avez refusé l\'autorisation de notifications de façon permanente. Pour recevoir des rappels, vous devez l\'activer manuellement dans les Paramètres.</string>
+    <string name="ir_a_configuracion">Aller aux Paramètres</string>
+
+    <string name="permiso_camara_titulo">Autorisation de Caméra</string>
+    <string name="permiso_camara_descripcion">La caméra est nécessaire pour prendre des photos et des vidéos. Veuillez l\'activer dans les Paramètres.</string>
+    <string name="permiso_audio_titulo">Autorisation Audio</string>
+    <string name="permiso_audio_descripcion">Le microphone est nécessaire pour enregistrer des notes vocales. Veuillez l\'activer dans les Paramètres.</string>
+
+    <string name="dialog_audio_title_finished">Enregistrement terminé</string>
+    <string name="dialog_audio_title_recording">Enregistrement audio en cours...</string>
+    <string name="dialog_audio_title_start">Enregistrer une note vocale</string>
+    <string name="dialog_audio_body_saved">Audio sauvegardé</string>
+    <string name="dialog_audio_body_time">Temps : %s</string>
+    <string name="dialog_audio_body_prompt">Appuyez sur DÉMARRER L\'ENREGISTREMENT pour commencer</string>
+    <string name="button_start_recording">Démarrer l\'Enregistrement</string>
+    <string name="button_stop_recording">Arrêter</string>
+    <string name="button_accept">Accepter</string>
+    <string name="dialog_attachments_empty">Aucune pièce jointe</string>
+    <string name="action_adjuntar">Joindre</string>
+    <string name="button_tomar_foto">Prendre Photo</string>
+    <string name="button_grabar_video">Enregistrer Vidéo</string>
 </resources>

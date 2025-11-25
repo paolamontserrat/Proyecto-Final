@@ -102,9 +102,6 @@ fun DetailScreen(
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         multimedia.forEach { item ->
-                             // Reimplementación local para DetailScreen para asegurar que se vea bien
-                             // y evitar problemas de importación/dependencias de EntryFormScreen si MultimediaItemView no es perfecto
-                             // También para ajustar tamaños (imagen completa)
                              MultimediaItemViewDetail(item)
                         }
                     }
@@ -121,23 +118,21 @@ fun MultimediaItemViewDetail(item: MultimediaState) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight(), // Permitir que crezca para ver imagen completa
+            .wrapContentHeight(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = MaterialTheme.shapes.medium
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             when (item.tipo) {
                 "FOTO" -> {
-                    // Mostrar imagen completa con relación de aspecto original si es posible, o fija pero grande
                     AsyncImage(
                         model = Uri.parse(item.uri),
                         contentDescription = null,
-                        contentScale = ContentScale.FillWidth, // Llenar ancho, ajustar alto
+                        contentScale = ContentScale.FillWidth,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp)
                     )
                 }
                 "VIDEO" -> {
-                    // En detalle queremos reproducir el video
                     VideoPlayerView(uri = Uri.parse(item.uri))
                 }
                 "AUDIO" -> {

@@ -1,21 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Notes and Media</string>
+    <string name="app_name">NotesAndMedia</string>
 
     <string name="title_notas_tareas">Notes and Tasks</string>
     <string name="title_nueva_nota">New Note</string>
     <string name="title_nueva_tarea">New Task</string>
-    <string name="title_actualizar_tarea">Update Tarea</string>
-    <string name="title_actualizar_nota">Update Nota</string>
+    <string name="title_actualizar_tarea">Update Task</string>
+    <string name="title_actualizar_nota">Update Note</string>
     <string name="title_selecciona_fuente">Select Media Source</string>
     <string name="label_adjuntar_multimedia">Attach Media (RF-02)</string>
     <string name="label_adjuntos_multimedia">Media Attachments</string>
-    <string name="action_guardar">Save</string>
-    <string name="action_confirmar">Confirm</string>
-    <string name="action_adjunto_video">Attach Video</string>
-    <string name="action_cancelar">Cancelar</string>
-
-    <string name="label_adjuntos">Add Multimedia</string>
 
     <string name="label_titulo">Title</string>
     <string name="label_descripcion">Description</string>
@@ -24,7 +18,7 @@
     <string name="label_tipo">Type: %s</string>
     <string name="label_fecha_vencimiento">Due Date: %s</string>
     <string name="label_archivo">File</string>
-    <string name="label_vence">Expires: %s</string>
+    <string name="label_vence">Due: %s</string>
 
     <string name="tab_todas">All</string>
     <string name="tab_notas">Notes</string>
@@ -40,7 +34,7 @@
     <string name="action_completar">Complete</string>
     <string name="action_desmarcar">Unmark</string>
     <string name="action_eliminar_tarea">Delete Task</string>
-    <string name="action_posponer_tarea">Snooze Task</string>
+    <string name="action_posponer_tarea">Postpone Task</string>
 
     <string name="button_guardar">Save</string>
     <string name="button_actualizar">Update</string>
@@ -57,6 +51,11 @@
     <string name="action_adjunto_archivo">Select File</string>
     <string name="action_adjunto_descripcion">Write description</string>
     <string name="action_adjunto_generico">Attachment</string>
+    <string name="action_guardar">Save</string>
+    <string name="action_confirmar">Confirm</string>
+    <string name="action_adjunto_video">Video</string>
+    <string name="label_adjuntos">Media Attachments</string>
+    <string name="action_cancelar">Cancel</string>
 
     <string name="status_completada">Completed</string>
     <string name="status_no_seleccionada">Not selected</string>
@@ -65,9 +64,32 @@
     <string name="status_completada_fecha">Completed on %s</string>
 
     <string name="placeholder_detail_title">Select a Note or Task</string>
-    <string name="placeholder_detail_subtitle">To see the detail in this panel</string>
+    <string name="placeholder_detail_subtitle">To view the detail on this panel</string>
     <string name="placeholder_miniaturas">--- Placeholder: ScrollableRow of thumbnails (AttachmentRow) ---</string>
 
-    <string name="label_hora_vencimiento">Expiration time:</string>
+    <string name="label_hora_vencimiento">Due time:</string>
     <string name="button_seleccionar_hora">Select Time</string>
+
+    <string name="permiso_necesario_titulo">Permission Required</string>
+    <string name="permiso_necesario_descripcion">You have permanently denied the notifications permission. To receive reminders, you must enable it manually from Settings.</string>
+    <string name="ir_a_configuracion">Go to Settings</string>
+
+    <string name="permiso_camara_titulo">Camera Permission</string>
+    <string name="permiso_camara_descripcion">The camera is required to take photos and videos. Please enable it in Settings.</string>
+    <string name="permiso_audio_titulo">Audio Permission</string>
+    <string name="permiso_audio_descripcion">The microphone is required to record voice notes. Please enable it in Settings.</string>
+
+    <string name="dialog_audio_title_finished">Recording finished</string>
+    <string name="dialog_audio_title_recording">Recording audio...</string>
+    <string name="dialog_audio_title_start">Record voice note</string>
+    <string name="dialog_audio_body_saved">Audio saved</string>
+    <string name="dialog_audio_body_time">Time: %s</string>
+    <string name="dialog_audio_body_prompt">Press START RECORDING to begin</string>
+    <string name="button_start_recording">Start Recording</string>
+    <string name="button_stop_recording">Stop</string>
+    <string name="button_accept">Accept</string>
+    <string name="dialog_attachments_empty">No attachments</string>
+    <string name="action_adjuntar">Attach</string>
+    <string name="button_tomar_foto">Take Photo</string>
+    <string name="button_grabar_video">Record Video</string>
 </resources>

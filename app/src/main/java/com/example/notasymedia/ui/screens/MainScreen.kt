@@ -46,7 +46,6 @@ fun MainScreen(
     val tareas by viewModel.tareas.collectAsState(initial = emptyList())
     val completadas by viewModel.completadas.collectAsState(initial = emptyList())
 
-    // Determinar la lista base según la pestaña seleccionada
     val baseList = when (selectedTabIndex) {
         0 -> todasNotas
         1 -> notas
@@ -55,7 +54,6 @@ fun MainScreen(
         else -> emptyList()
     }
 
-    // Aplicar filtro de búsqueda si está activo
     val listaNotas = remember(baseList, searchQuery, isSearchActive) {
         if (isSearchActive && searchQuery.isNotBlank()) {
             baseList.filter { nota ->

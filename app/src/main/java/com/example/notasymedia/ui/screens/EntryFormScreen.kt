@@ -1,9 +1,13 @@
 package com.example.notasymedia.ui.screens
 
 import android.Manifest
+import android.app.Activity
 import android.app.TimePickerDialog
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,20 +27,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notasymedia.R
 import com.example.notasymedia.providers.MiFileProviderMultimedia
 import com.example.notasymedia.viewmodel.NotaViewModel
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntryFormScreen(
     modifier: Modifier = Modifier,
@@ -53,8 +55,7 @@ fun EntryFormScreen(
     var showMediaSheet by remember { mutableStateOf(false) }
     var showAudioRecorder by rememberSaveable { mutableStateOf(false) }
 
-    // --- LAUNCHERS ---
-    
+
     // Launcher Foto
     val photoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
@@ -80,13 +81,12 @@ fun EntryFormScreen(
     // Launcher Archivos (Múltiples tipos)
     val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
-            // Persistir permiso de lectura para la URI (importante para reiniciar la app)
             try {
                 context.contentResolver.takePersistableUriPermission(it, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
             } catch (e: Exception) {
                 Log.e("EntryForm", "No se pudo persistir permisos URI: $e")
             }
-            
+
             val type = context.contentResolver.getType(it)
             val category = when {
                 type?.startsWith("image/") == true -> "FOTO"
@@ -99,7 +99,7 @@ fun EntryFormScreen(
     }
 
     LaunchedEffect(itemId) { viewModel.loadNota(itemId) }
-    
+
     val statusNoSeleccionada = stringResource(R.string.status_no_seleccionada)
     val fechaHoraTexto by remember(formState.fechaVencimiento, formState.horaVencimiento, formState.minutoVencimiento) {
         derivedStateOf {
@@ -212,7 +212,7 @@ fun EntryFormScreen(
                             Icon(Icons.Filled.AttachFile, contentDescription = "Adjuntar")
                         }
                     }
-                    
+
                     Spacer(Modifier.height(8.dp))
 
                     if (formState.multimedia.isEmpty()) {
@@ -240,7 +240,7 @@ fun EntryFormScreen(
                     }
                 }
             }
-            Spacer(Modifier.height(80.dp)) // Espacio extra al final
+            Spacer(Modifier.height(80.dp))
         }
     }
 
@@ -302,9 +302,8 @@ fun EntryFormScreen(
     }
 }
 
-// --- COMPONENTES AUXILIARES (Bottom Sheets y Dialogs) ---
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaPickerBottomSheet(
     onDismissRequest: () -> Unit,
@@ -313,45 +312,82 @@ fun MediaPickerBottomSheet(
     onPickFile: () -> Unit,
     onStartAudioRecording: () -> Unit
 ) {
-    val cameraPerm = rememberPermissionState(Manifest.permission.CAMERA)
-    val audioPerm = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+    val context = LocalContext.current
+    var showCameraSettingsDialog by remember { mutableStateOf(false) }
+    var showAudioSettingsDialog by remember { mutableStateOf(false) }
+    var pendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+
+    // Lanzadores de permisos
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            pendingAction?.invoke()
+        } else {
+            val activity = context as? Activity
+            if (activity != null && !activity.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+                showCameraSettingsDialog = true
+            }
+        }
+        pendingAction = null
+    }
+
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            pendingAction?.invoke()
+        } else {
+            val activity = context as? Activity
+            if (activity != null && !activity.shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)) {
+                showAudioSettingsDialog = true
+            }
+        }
+        pendingAction = null
+    }
 
     ModalBottomSheet(onDismissRequest = onDismissRequest) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(stringResource(R.string.title_selecciona_fuente), style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
 
+            // BOTÓN TOMAR FOTO
             Button(onClick = {
-                if (cameraPerm.status.isGranted) {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                     onTakePhoto()
                 } else {
-                    cameraPerm.launchPermissionRequest()
+                    pendingAction = onTakePhoto
+                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }
             }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.PhotoCamera, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Tomar Foto")
+                Text(stringResource(R.string.button_tomar_foto))
             }
             Spacer(Modifier.height(8.dp))
-            
+
+            // BOTÓN GRABAR VIDEO
             Button(onClick = {
-                 if (cameraPerm.status.isGranted) {
+                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                     onTakeVideo()
                 } else {
-                    cameraPerm.launchPermissionRequest()
+                    pendingAction = onTakeVideo
+                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }
             }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Videocam, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Grabar Video")
+                Text(stringResource(R.string.button_grabar_video))
             }
              Spacer(Modifier.height(8.dp))
 
+            // BOTÓN GRABAR AUDIO
             Button(onClick = {
-                if (audioPerm.status.isGranted) {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
                     onStartAudioRecording()
                 } else {
-                    audioPerm.launchPermissionRequest()
+                    pendingAction = onStartAudioRecording
+                    audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                 }
             }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Mic, contentDescription = null)
@@ -360,6 +396,7 @@ fun MediaPickerBottomSheet(
             }
             Spacer(Modifier.height(8.dp))
 
+            // BOTÓN SELECCIONAR ARCHIVO
             Button(onClick = {
                 onPickFile()
             }, modifier = Modifier.fillMaxWidth()) {
@@ -369,6 +406,50 @@ fun MediaPickerBottomSheet(
             }
             Spacer(Modifier.height(32.dp))
         }
+    }
+
+    // DIALOGO AJUSTES
+    if (showCameraSettingsDialog) {
+        AlertDialog(
+            onDismissRequest = { showCameraSettingsDialog = false },
+            title = { Text(stringResource(R.string.permiso_camara_titulo)) },
+            text = { Text(stringResource(R.string.permiso_camara_descripcion)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCameraSettingsDialog = false
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                }) { Text(stringResource(R.string.ir_a_configuracion)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCameraSettingsDialog = false }) {
+                    Text(stringResource(R.string.action_cancelar))
+                }
+            }
+        )
+    }
+    if (showAudioSettingsDialog) {
+        AlertDialog(
+            onDismissRequest = { showAudioSettingsDialog = false },
+            title = { Text(stringResource(R.string.permiso_audio_titulo)) },
+            text = { Text(stringResource(R.string.permiso_audio_descripcion)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showAudioSettingsDialog = false
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                }) { Text(stringResource(R.string.ir_a_configuracion)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAudioSettingsDialog = false }) {
+                    Text(stringResource(R.string.action_cancelar))
+                }
+            }
+        )
     }
 }
 
@@ -436,17 +517,8 @@ fun AudioRecorderDialog(onAudioRecorded: (Uri) -> Unit, onCancel: () -> Unit) {
         }
     }
 
-    val titleText = when {
-        hasFinishedRecording -> "Grabación finalizada"
-        isRecording -> "Grabando audio..."
-        else -> "Grabar nota de voz"
-    }
-
-    val bodyText = when {
-        hasFinishedRecording -> "Audio guardado"
-        isRecording -> "Tiempo: $formattedTime"
-        else -> "Pulsa INICIAR GRABACIÓN para comenzar"
-    }
+    val titleText = if (hasFinishedRecording) stringResource(R.string.dialog_audio_title_finished) else if (isRecording) stringResource(R.string.dialog_audio_title_recording) else stringResource(R.string.dialog_audio_title_start)
+    val bodyText = if (hasFinishedRecording) stringResource(R.string.dialog_audio_body_saved) else if (isRecording) stringResource(R.string.dialog_audio_body_time, formattedTime) else stringResource(R.string.dialog_audio_body_prompt)
 
     AlertDialog(
         onDismissRequest = onCancel,
@@ -455,21 +527,21 @@ fun AudioRecorderDialog(onAudioRecorded: (Uri) -> Unit, onCancel: () -> Unit) {
         confirmButton = {
             when {
                 !isRecording && !hasFinishedRecording -> {
-                    Button(onClick = { isRecording = true }) { Text("Iniciar Grabación") }
+                    Button(onClick = { isRecording = true }) { Text(stringResource(R.string.button_start_recording)) }
                 }
                 isRecording -> {
                     Button(onClick = {
                         isRecording = false
                         hasFinishedRecording = true
-                    }) { Text("Detener") }
+                    }) { Text(stringResource(R.string.button_stop_recording)) }
                 }
                 else -> {
-                    Button(onClick = onCancel) { Text("Aceptar") }
+                    Button(onClick = onCancel) { Text(stringResource(R.string.button_accept)) }
                 }
             }
         },
         dismissButton = if (hasFinishedRecording) null else {
-            { Button(onClick = onCancel) { Text("Cancelar") } }
+            { Button(onClick = onCancel) { Text(stringResource(R.string.action_cancelar)) } }
         }
     )
 }

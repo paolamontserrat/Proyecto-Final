@@ -1,18 +1,31 @@
 package com.example.notasymedia
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -27,24 +40,13 @@ import com.example.notasymedia.ui.theme.NotasYMediaTheme
 
 class MainActivity : ComponentActivity() {
 
-    // Launcher para solicitar permisos
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            // Permiso concedido
-        } else {
-            // Permiso denegado, podrías mostrar un mensaje
-        }
-    }
-
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             NotasYMediaTheme {
-                // Solicitar permiso de notificaciones en Android 13+
+                // Solicitar permiso de notificaciones en Android 13+ con manejo de configuración
                 RequestNotificationPermission()
 
                 val windowSizeClass = calculateWindowSizeClass(this)
@@ -57,19 +59,57 @@ class MainActivity : ComponentActivity() {
     private fun RequestNotificationPermission() {
         // La solicitud solo es necesaria para SDK 33 (Android 13) o superior
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            LaunchedEffect(Unit) {
-                when {
-                    ContextCompat.checkSelfPermission(
-                        this@MainActivity,
-                        Manifest.permission.POST_NOTIFICATIONS
-                    ) == PackageManager.PERMISSION_GRANTED -> {
-                        // El permiso ya está concedido
-                    }
-                    else -> {
-                        // Solicitar el permiso
-                        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            val context = LocalContext.current
+            var showSettingsDialog by remember { mutableStateOf(false) }
+
+            // Usamos rememberLauncherForActivityResult para manejar la respuesta en Compose
+            val launcher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission()
+            ) { isGranted: Boolean ->
+                if (!isGranted) {
+                    val activity = context as? Activity
+                    // Si el permiso es denegado y shouldShowRequestPermissionRationale es false,
+                    // significa que se denegó permanentemente (o por segunda vez).
+                    if (activity != null && !activity.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                        showSettingsDialog = true
                     }
                 }
+            }
+
+            LaunchedEffect(Unit) {
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+
+            // Diálogo que dirige a Configuración
+            if (showSettingsDialog) {
+                AlertDialog(
+                    onDismissRequest = { showSettingsDialog = false },
+                    title = { Text(stringResource(R.string.permiso_necesario_titulo)) },
+                    text = { Text(stringResource(R.string.permiso_necesario_descripcion)) },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showSettingsDialog = false
+                            val intent = Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", context.packageName, null)
+                            )
+                            context.startActivity(intent)
+                        }) {
+                            Text(stringResource(R.string.ir_a_configuracion))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showSettingsDialog = false }) {
+                            Text(stringResource(R.string.action_cancelar))
+                        }
+                    }
+                )
             }
         }
     }

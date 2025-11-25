@@ -23,7 +23,7 @@ class BootReceiver : BroadcastReceiver() {
             val scope = CoroutineScope(Dispatchers.IO)
 
             scope.launch {
-                val tareas = repository.obtenerTareasList() // Necesitamos una funcion suspend que retorne List<NotaEntity> directo, no Flow
+                val tareas = repository.obtenerTareasList()
                 val now = System.currentTimeMillis()
 
                 tareas.forEach { tarea ->
@@ -57,7 +57,6 @@ class BootReceiver : BroadcastReceiver() {
             if (alarmManager.canScheduleExactAlarms()) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
             } else {
-                // Fallback a alarma inexacta si no hay permiso (aunque deberiamos pedirlo en UI)
                 alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
             }
         } else {

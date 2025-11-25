@@ -4,10 +4,10 @@ import android.content.Context
 import android.media.MediaRecorder
 import java.io.File
 
-class AndroidAudioRecorder(private val context: Context) {  // Fix: Toma Context como param
+class AndroidAudioRecorder(private val context: Context) {
     private var recorder: MediaRecorder? = null
 
-    fun start(outputFile: File) {  // Fix: Toma File directamente
+    fun start(outputFile: File) {
         recorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)

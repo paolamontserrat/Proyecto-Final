@@ -1,8 +1,6 @@
 package com.example.notasymedia.ui.screens
 
-import android.net.Uri
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -12,27 +10,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.example.notasymedia.R
 import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.TipoNota
-import com.example.notasymedia.ui.theme.NotasYMediaTheme
-import com.example.notasymedia.viewmodel.NotaViewModel
 import com.example.notasymedia.viewmodel.MultimediaState
+import com.example.notasymedia.viewmodel.NotaViewModel
 import com.example.notasymedia.viewmodel.toState
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.ui.PlayerView
 import java.text.SimpleDateFormat
 import java.util.Locale
-import androidx.compose.material.icons.filled.Image  // Para el ícono de imagen
-import androidx.compose.material.icons.filled.Timer  // Para el ícono de timer (si usas en toolbar o bottom bar)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,7 +75,7 @@ fun DetailScreen(
                     }
                     if (nota!!.tipo == TipoNota.TAREA && nota!!.fechaVencimiento != null) {
                         val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-                        val fechaHora = formatter.format(nota!!.fechaVencimiento)
+                        val fechaHora = formatter.format(nota!!.fechaVencimiento!!)
                         Text(
                             text = stringResource(R.string.label_fecha_vencimiento, fechaHora),
                             style = MaterialTheme.typography.bodyMedium,
@@ -122,24 +110,6 @@ fun DetailScreen(
     }
 }
 
-@Composable
-fun VideoPlayer(videoUri: Uri, modifier: Modifier = Modifier.fillMaxWidth().height(200.dp)) {
-    val context = LocalContext.current
-    val exoPlayer = remember {
-        SimpleExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(videoUri))
-            prepare()
-        }
-    }
-
-    AndroidView(
-        factory = { ctx ->
-            PlayerView(ctx).apply { player = exoPlayer }
-        },
-        modifier = modifier
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailToolbar(
@@ -147,17 +117,16 @@ fun DetailToolbar(
     onNavigateToEdit: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    // Implement toolbar here if not already
     TopAppBar(
         title = { Text("Detalle") },
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.Default.ArrowBack, null)
+                Icon(Icons.Filled.ArrowBack, null)
             }
         },
         actions = {
             IconButton(onClick = onNavigateToEdit) {
-                Icon(Icons.Default.Edit, null)
+                Icon(Icons.Filled.Edit, null)
             }
         }
     )
@@ -167,13 +136,13 @@ fun DetailToolbar(
 fun TaskActionsBottomBar() {
     BottomAppBar(
         actions = {
-            Button(onClick = { /* Posponer */ }, modifier = Modifier.weight(1f)) {
+            Button(onClick = { /* Posponer - Implementar logica */ }, modifier = Modifier.weight(1f)) {
                 Icon(Icons.Filled.Timer, null)
                 Spacer(Modifier.width(4.dp))
                 Text("Posponer")
             }
             Spacer(Modifier.width(8.dp))
-            Button(onClick = { /* Eliminar */ }, modifier = Modifier.weight(1f)) {
+            Button(onClick = { /* Eliminar - Implementar logica */ }, modifier = Modifier.weight(1f)) {
                 Icon(Icons.Filled.Delete, null)
                 Spacer(Modifier.width(4.dp))
                 Text("Eliminar")

@@ -1,13 +1,19 @@
 package com.example.notasymedia
 
-import android.R.attr.id
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,33 +24,72 @@ import com.example.notasymedia.ui.screens.EntryFormScreen
 import com.example.notasymedia.ui.screens.MainScreen
 import com.example.notasymedia.ui.screens.MasterDetailLayout
 import com.example.notasymedia.ui.theme.NotasYMediaTheme
-import com.example.notasymedia.viewmodel.NotaViewModel
-import androidx.compose.ui.graphics.Color
-import androidx.compose.material3.Text
 
 class MainActivity : ComponentActivity() {
-    // ViewModel para pruebas (temporal)
-    private lateinit var testViewModel: NotaViewModel
+
+    // Launcher para solicitar permisos
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permiso concedido
+        } else {
+            // Permiso denegado, podrías mostrar un mensaje
+        }
+    }
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Crea ViewModel para pruebas
-
         setContent {
             NotasYMediaTheme {
+                // Solicitar permiso de notificaciones en Android 13+
+                RequestNotificationPermission()
+
                 val windowSizeClass = calculateWindowSizeClass(this)
-                AppContent(windowSizeClass.widthSizeClass)
+                AppContent(windowSizeClass.widthSizeClass, intent)
+            }
+        }
+    }
+
+    @Composable
+    private fun RequestNotificationPermission() {
+        // La solicitud solo es necesaria para SDK 33 (Android 13) o superior
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            LaunchedEffect(Unit) {
+                when {
+                    ContextCompat.checkSelfPermission(
+                        this@MainActivity,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) == PackageManager.PERMISSION_GRANTED -> {
+                        // El permiso ya está concedido
+                    }
+                    else -> {
+                        // Solicitar el permiso
+                        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun AppContent(widthSizeClass: WindowWidthSizeClass) {
+fun AppContent(widthSizeClass: WindowWidthSizeClass, intent: Intent?) {
     //Crear el controlador de navegacion
     val navController = rememberNavController()
+    
+    // Manejo de notificación al inicio (deep link manual)
+    LaunchedEffect(intent) {
+        if (intent != null && intent.hasExtra("taskId")) {
+            val taskId = intent.getIntExtra("taskId", -1)
+            if (taskId != -1) {
+                navController.navigate("detail/$taskId")
+            }
+        }
+    }
+
     if (widthSizeClass == WindowWidthSizeClass.Expanded) {
         MasterDetailLayout(
             onNavigateToEdit = { id ->
@@ -64,7 +109,7 @@ fun AppContent(widthSizeClass: WindowWidthSizeClass) {
             //Pantalla Principal (Lista)
             composable("main_list") {
                 MainScreen(
-                    onNavigateToForm = { id: Int ->  // ← Agrega el parámetro id: Int
+                    onNavigateToForm = { id: Int ->
                         navController.navigate("entry_form/$id")
                     },
                     onNavigateToDetail = { id: Int ->
@@ -79,7 +124,7 @@ fun AppContent(widthSizeClass: WindowWidthSizeClass) {
             ) { backStackEntry ->
                 val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
                 DetailScreen(
-                    itemId = itemId, // Parametro con nombre explicit
+                    itemId = itemId,
                     onNavigateToEdit = { navController.navigate("entry_form/$itemId") },
                     onNavigateBack = { navController.popBackStack() }
                 )
@@ -92,7 +137,7 @@ fun AppContent(widthSizeClass: WindowWidthSizeClass) {
             ) { backStackEntry ->
                 val itemId = backStackEntry.arguments?.getInt("itemId") ?: -1
                 EntryFormScreen(
-                    itemId = itemId, // Parametro con nombre explicit
+                    itemId = itemId,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

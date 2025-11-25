@@ -36,6 +36,10 @@ interface NotaDao {
     @Query("SELECT * FROM notas_table WHERE tipo = :tipo ORDER BY fechaCreacion DESC")
     fun obtenerTareas(tipo: TipoNota = TipoNota.TAREA): Flow<List<NotaEntity>>
 
+    // Obtener lista de tareas (suspend, para uso en Background como BootReceiver)
+    @Query("SELECT * FROM notas_table WHERE tipo = 'TAREA'") // Room convierte enum a String por defecto o type converter
+    suspend fun obtenerTareasList(): List<NotaEntity>
+
     // Obtener completadas (tareas hechas)
     @Query("SELECT * FROM notas_table WHERE esCompletada = 1 ORDER BY fechaCreacion DESC")
     fun obtenerCompletadas(): Flow<List<NotaEntity>>

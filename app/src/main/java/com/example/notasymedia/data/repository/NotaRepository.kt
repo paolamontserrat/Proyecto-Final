@@ -25,6 +25,9 @@ interface NotaRepository{
     //Obtener tareas
     fun obtenerTareas(): Flow<List<NotaEntity>>
 
+    // Obtener lista de tareas (suspend, para Background/Boot)
+    suspend fun obtenerTareasList(): List<NotaEntity>
+
     //Obtener completadas
     fun obtenerCompletadas(): Flow<List<NotaEntity>>
 

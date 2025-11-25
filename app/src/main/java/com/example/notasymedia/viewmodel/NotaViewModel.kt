@@ -7,6 +7,7 @@ import com.example.notasymedia.data.entity.MultimediaEntity
 import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.data.repository.NotaRepositoryFactory
+import com.example.notasymedia.utils.AlarmScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,6 +37,7 @@ fun MultimediaEntity.toState() = MultimediaState(id, tipo, uri, descripcion)
 
 class NotaViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = NotaRepositoryFactory.crear(application)
+    private val context = application.applicationContext
 
     // Listas observables
     val todasNotas = repository.obtenerTodas()
@@ -146,6 +148,19 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
                 repository.insertarMultimedia(entities)
             }
 
+            // Programar alarma si es tarea
+            if (state.isTask && vencimientoFinal != null) {
+                if (vencimientoFinal.time > System.currentTimeMillis()) {
+                    AlarmScheduler.scheduleAlarm(
+                        context, 
+                        notaId, 
+                        vencimientoFinal.time, 
+                        nuevaNota.titulo, 
+                        nuevaNota.descripcion
+                    )
+                }
+            }
+
             resetForm()
         }
     }
@@ -175,13 +190,31 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
                 )
                 repository.actualizar(notaActualizada)
 
-                // Actualizar multimedia: estrategia simple -> borrar todo y reinsertar
+                // Actualizar multimedia
                 repository.eliminarMultimediaPorNotaId(state.id)
                 if (state.multimedia.isNotEmpty()) {
                     val entities = state.multimedia.map {
                         MultimediaEntity(notaId = state.id, tipo = it.tipo, uri = it.uri, descripcion = it.descripcion)
                     }
                     repository.insertarMultimedia(entities)
+                }
+
+                // Manejo de alarmas
+                if (state.isTask && vencimientoFinal != null) {
+                     if (vencimientoFinal.time > System.currentTimeMillis() && !notaActualizada.esCompletada) {
+                        AlarmScheduler.scheduleAlarm(
+                            context,
+                            state.id,
+                            vencimientoFinal.time,
+                            notaActualizada.titulo,
+                            notaActualizada.descripcion
+                        )
+                     } else {
+                         AlarmScheduler.cancelAlarm(context, state.id)
+                     }
+                } else {
+                    // Si ya no es tarea o no tiene fecha
+                    AlarmScheduler.cancelAlarm(context, state.id)
                 }
 
                 resetForm()
@@ -195,14 +228,23 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
             val nota = repository.obtenerPorId(id) ?: return@launch
             if (nota.tipo == TipoNota.TAREA) {
                 repository.actualizar(nota.copy(esCompletada = completada))
+                if (completada) {
+                    AlarmScheduler.cancelAlarm(context, id)
+                } else {
+                    // Si se desmarca y tiene fecha futura, reprogramar
+                    if (nota.fechaVencimiento != null && nota.fechaVencimiento.time > System.currentTimeMillis()) {
+                         AlarmScheduler.scheduleAlarm(context, id, nota.fechaVencimiento.time, nota.titulo, nota.descripcion)
+                    }
+                }
             }
         }
     }
 
     fun eliminar(id: Int) {
         viewModelScope.launch { 
-            repository.eliminarMultimediaPorNotaId(id) // Limpiar multimedia primero por si acaso (aunque CASCADE debería hacerlo)
+            repository.eliminarMultimediaPorNotaId(id)
             repository.eliminarPorId(id) 
+            AlarmScheduler.cancelAlarm(context, id)
         }
     }
 

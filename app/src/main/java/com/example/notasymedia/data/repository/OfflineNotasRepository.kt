@@ -36,6 +36,9 @@ class OfflineNotaRepository(
     //Obtener tareas
     override fun obtenerTareas(): Flow<List<NotaEntity>> = notaDao.obtenerTareas(TipoNota.TAREA)
 
+    // Obtener lista de tareas (suspend)
+    override suspend fun obtenerTareasList(): List<NotaEntity> = notaDao.obtenerTareasList()
+
     //Obtener completadas
     override fun obtenerCompletadas(): Flow<List<NotaEntity>> = notaDao.obtenerCompletadas()
 

@@ -69,6 +69,8 @@ dependencies {
     // Multimedia y utils
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")  // Versión estable
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc01")
+    implementation("io.coil-kt.coil3:coil-network-ktor3:3.0.0-rc01")
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")  // O usa media3 si prefieres
     // Tests (sin cambios)
     testImplementation(libs.junit)

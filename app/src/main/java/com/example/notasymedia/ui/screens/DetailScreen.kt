@@ -1,5 +1,6 @@
 package com.example.notasymedia.ui.screens
 
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,9 +11,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.example.notasymedia.R
 import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.TipoNota
@@ -99,12 +102,54 @@ fun DetailScreen(
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         multimedia.forEach { item ->
-                            MultimediaItemView(item = item, onRemove = null)
+                             // Reimplementación local para DetailScreen para asegurar que se vea bien
+                             // y evitar problemas de importación/dependencias de EntryFormScreen si MultimediaItemView no es perfecto
+                             // También para ajustar tamaños (imagen completa)
+                             MultimediaItemViewDetail(item)
                         }
                     }
                 }
                 
                 Spacer(Modifier.height(32.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun MultimediaItemViewDetail(item: MultimediaState) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(), // Permitir que crezca para ver imagen completa
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            when (item.tipo) {
+                "FOTO" -> {
+                    // Mostrar imagen completa con relación de aspecto original si es posible, o fija pero grande
+                    AsyncImage(
+                        model = Uri.parse(item.uri),
+                        contentDescription = null,
+                        contentScale = ContentScale.FillWidth, // Llenar ancho, ajustar alto
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp)
+                    )
+                }
+                "VIDEO" -> {
+                    // En detalle queremos reproducir el video
+                    VideoPlayerView(uri = Uri.parse(item.uri))
+                }
+                "AUDIO" -> {
+                     AudioPlayerView(uri = Uri.parse(item.uri))
+                }
+                else -> {
+                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.InsertDriveFile, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = item.uri.substringAfterLast("/"))
+                    }
+                }
             }
         }
     }

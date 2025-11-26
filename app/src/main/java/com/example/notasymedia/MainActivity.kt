@@ -75,7 +75,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-
             LaunchedEffect(Unit) {
                 if (ContextCompat.checkSelfPermission(
                         context,

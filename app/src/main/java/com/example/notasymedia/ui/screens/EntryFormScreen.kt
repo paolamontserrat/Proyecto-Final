@@ -1,9 +1,13 @@
 package com.example.notasymedia.ui.screens
 
 import android.Manifest
+import android.app.Activity
 import android.app.TimePickerDialog
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,21 +27,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notasymedia.R
 import com.example.notasymedia.providers.MiFileProviderMultimedia
 import com.example.notasymedia.viewmodel.NotaViewModel
-import com.example.notasymedia.viewmodel.RecordatorioState
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntryFormScreen(
     modifier: Modifier = Modifier,
@@ -49,15 +50,13 @@ fun EntryFormScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // Estados para los diálogos de fecha y hora (para agregar un nuevo recordatorio)
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
-    var tempSelectedDate by remember { mutableStateOf<Date?>(null) }
-
     var showMediaSheet by remember { mutableStateOf(false) }
     var showAudioRecorder by rememberSaveable { mutableStateOf(false) }
 
-    // --- LAUNCHERS ---
+
+    // Launcher Foto
     val photoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
             val uri = MiFileProviderMultimedia.getLastTakenUri(context)
@@ -68,6 +67,7 @@ fun EntryFormScreen(
         }
     }
 
+    // Launcher Video
     val videoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
         if (success) {
             val uri = MiFileProviderMultimedia.getLastTakenUri(context)
@@ -78,6 +78,7 @@ fun EntryFormScreen(
         }
     }
 
+    // Launcher Archivos (Múltiples tipos)
     val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
             try {
@@ -85,7 +86,7 @@ fun EntryFormScreen(
             } catch (e: Exception) {
                 Log.e("EntryForm", "No se pudo persistir permisos URI: $e")
             }
-            
+
             val type = context.contentResolver.getType(it)
             val category = when {
                 type?.startsWith("image/") == true -> "FOTO"
@@ -98,7 +99,23 @@ fun EntryFormScreen(
     }
 
     LaunchedEffect(itemId) { viewModel.loadNota(itemId) }
-    
+
+    val statusNoSeleccionada = stringResource(R.string.status_no_seleccionada)
+    val fechaHoraTexto by remember(formState.fechaVencimiento, formState.horaVencimiento, formState.minutoVencimiento) {
+        derivedStateOf {
+            if (formState.fechaVencimiento != null && formState.horaVencimiento != null && formState.minutoVencimiento != null) {
+                val cal = Calendar.getInstance().apply {
+                    time = formState.fechaVencimiento!!
+                    set(Calendar.HOUR_OF_DAY, formState.horaVencimiento!!)
+                    set(Calendar.MINUTE, formState.minutoVencimiento!!)
+                }
+                SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(cal.time)
+            } else {
+                statusNoSeleccionada
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -168,28 +185,16 @@ fun EntryFormScreen(
             }
             Spacer(Modifier.height(16.dp))
 
-            // RECORDATORIOS (Solo si es Tarea)
+            // FECHA/HORA TAREA
             if (formState.isTask) {
-                Text("Recordatorios", style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(8.dp))
-
-                // Lista de recordatorios existentes
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    formState.recordatorios.forEach { recordatorio ->
-                        RecordatorioItem(recordatorio = recordatorio, onDelete = { viewModel.removeRecordatorio(recordatorio) })
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.label_fecha_vencimiento))
                     }
-                }
-                
-                Spacer(Modifier.height(8.dp))
-
-                // Botón para agregar nuevo recordatorio
-                OutlinedButton(
-                    onClick = { showDatePicker = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Filled.AddAlarm, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Agregar Recordatorio")
+                    OutlinedButton(onClick = { showTimePicker = true }, modifier = Modifier.weight(1f)) {
+                        Text(fechaHoraTexto)
+                    }
                 }
                 Spacer(Modifier.height(16.dp))
             }
@@ -207,7 +212,7 @@ fun EntryFormScreen(
                             Icon(Icons.Filled.AttachFile, contentDescription = "Adjuntar")
                         }
                     }
-                    
+
                     Spacer(Modifier.height(8.dp))
 
                     if (formState.multimedia.isEmpty()) {
@@ -218,7 +223,7 @@ fun EntryFormScreen(
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Sin archivos adjuntos", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.dialog_attachments_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     } else {
                         // LISTA VERTICAL DE ADJUNTOS
@@ -235,22 +240,19 @@ fun EntryFormScreen(
                     }
                 }
             }
-            Spacer(Modifier.height(80.dp)) // Espacio extra al final
+            Spacer(Modifier.height(80.dp))
         }
     }
 
-    // DIALOGOS DE FECHA Y HORA
+    // DIALOGOS
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 TextButton({
-                    datePickerState.selectedDateMillis?.let {
-                        tempSelectedDate = Date(it)
-                        showDatePicker = false
-                        showTimePicker = true // Abrir selector de hora después de fecha
-                    }
+                    datePickerState.selectedDateMillis?.let { viewModel.updateFechaVencimiento(Date(it)) }
+                    showDatePicker = false
                 }) { Text(stringResource(R.string.action_confirmar)) }
             },
             dismissButton = { TextButton({ showDatePicker = false }) { Text(stringResource(R.string.action_cancelar)) } }
@@ -258,25 +260,11 @@ fun EntryFormScreen(
     }
 
     if (showTimePicker) {
-        val cal = Calendar.getInstance()
         TimePickerDialog(context, { _, h, m ->
-            if (tempSelectedDate != null) {
-                val finalCal = Calendar.getInstance().apply {
-                    time = tempSelectedDate!!
-                    set(Calendar.HOUR_OF_DAY, h)
-                    set(Calendar.MINUTE, m)
-                    set(Calendar.SECOND, 0)
-                }
-                viewModel.addRecordatorio(finalCal.time)
-            }
-            showTimePicker = false
-        }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show()
-        
-        // El TimePickerDialog de Android es un diálogo nativo que no bloquea la composición como un Composable,
-        // pero para mantener el estado limpio reseteamos showTimePicker inmediatamente ya que el dialog se maneja solo.
-        // Sin embargo, para evitar recomposiciones múltiples, es mejor manejar el dismiss del dialog si fuera composable.
-        // Aquí usamos el nativo, así que simplemente seteamos false. 
-        showTimePicker = false 
+            viewModel.updateHoraVencimiento(h)
+            viewModel.updateMinutoVencimiento(m)
+        }, 12, 0, true).show()
+        showTimePicker = false
     }
 
     if (showMediaSheet) {
@@ -314,33 +302,8 @@ fun EntryFormScreen(
     }
 }
 
-@Composable
-fun RecordatorioItem(recordatorio: RecordatorioState, onDelete: () -> Unit) {
-    val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Alarm, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.width(8.dp))
-                Text(formatter.format(recordatorio.fechaHora))
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Close, contentDescription = "Eliminar recordatorio")
-            }
-        }
-    }
-}
 
-// --- COMPONENTES AUXILIARES (Bottom Sheets y Dialogs) ---
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaPickerBottomSheet(
     onDismissRequest: () -> Unit,
@@ -349,45 +312,82 @@ fun MediaPickerBottomSheet(
     onPickFile: () -> Unit,
     onStartAudioRecording: () -> Unit
 ) {
-    val cameraPerm = rememberPermissionState(Manifest.permission.CAMERA)
-    val audioPerm = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+    val context = LocalContext.current
+    var showCameraSettingsDialog by remember { mutableStateOf(false) }
+    var showAudioSettingsDialog by remember { mutableStateOf(false) }
+    var pendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+
+    // Lanzadores de permisos
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            pendingAction?.invoke()
+        } else {
+            val activity = context as? Activity
+            if (activity != null && !activity.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+                showCameraSettingsDialog = true
+            }
+        }
+        pendingAction = null
+    }
+
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            pendingAction?.invoke()
+        } else {
+            val activity = context as? Activity
+            if (activity != null && !activity.shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)) {
+                showAudioSettingsDialog = true
+            }
+        }
+        pendingAction = null
+    }
 
     ModalBottomSheet(onDismissRequest = onDismissRequest) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(stringResource(R.string.title_selecciona_fuente), style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
 
+            // BOTÓN TOMAR FOTO
             Button(onClick = {
-                if (cameraPerm.status.isGranted) {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                     onTakePhoto()
                 } else {
-                    cameraPerm.launchPermissionRequest()
+                    pendingAction = onTakePhoto
+                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }
             }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.PhotoCamera, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Tomar Foto")
+                Text(stringResource(R.string.button_tomar_foto))
             }
             Spacer(Modifier.height(8.dp))
-            
+
+            // BOTÓN GRABAR VIDEO
             Button(onClick = {
-                 if (cameraPerm.status.isGranted) {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                     onTakeVideo()
                 } else {
-                    cameraPerm.launchPermissionRequest()
+                    pendingAction = onTakeVideo
+                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }
             }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Videocam, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Grabar Video")
+                Text(stringResource(R.string.button_grabar_video))
             }
-             Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(8.dp))
 
+            // BOTÓN GRABAR AUDIO
             Button(onClick = {
-                if (audioPerm.status.isGranted) {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
                     onStartAudioRecording()
                 } else {
-                    audioPerm.launchPermissionRequest()
+                    pendingAction = onStartAudioRecording
+                    audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                 }
             }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Mic, contentDescription = null)
@@ -396,6 +396,7 @@ fun MediaPickerBottomSheet(
             }
             Spacer(Modifier.height(8.dp))
 
+            // BOTÓN SELECCIONAR ARCHIVO
             Button(onClick = {
                 onPickFile()
             }, modifier = Modifier.fillMaxWidth()) {
@@ -405,6 +406,50 @@ fun MediaPickerBottomSheet(
             }
             Spacer(Modifier.height(32.dp))
         }
+    }
+
+    // DIALOGO AJUSTES
+    if (showCameraSettingsDialog) {
+        AlertDialog(
+            onDismissRequest = { showCameraSettingsDialog = false },
+            title = { Text(stringResource(R.string.permiso_camara_titulo)) },
+            text = { Text(stringResource(R.string.permiso_camara_descripcion)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCameraSettingsDialog = false
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                }) { Text(stringResource(R.string.ir_a_configuracion)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCameraSettingsDialog = false }) {
+                    Text(stringResource(R.string.action_cancelar))
+                }
+            }
+        )
+    }
+    if (showAudioSettingsDialog) {
+        AlertDialog(
+            onDismissRequest = { showAudioSettingsDialog = false },
+            title = { Text(stringResource(R.string.permiso_audio_titulo)) },
+            text = { Text(stringResource(R.string.permiso_audio_descripcion)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showAudioSettingsDialog = false
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                }) { Text(stringResource(R.string.ir_a_configuracion)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAudioSettingsDialog = false }) {
+                    Text(stringResource(R.string.action_cancelar))
+                }
+            }
+        )
     }
 }
 
@@ -473,15 +518,15 @@ fun AudioRecorderDialog(onAudioRecorded: (Uri) -> Unit, onCancel: () -> Unit) {
     }
 
     val titleText = when {
-        hasFinishedRecording -> "Grabación finalizada"
-        isRecording -> "Grabando audio..."
-        else -> "Grabar nota de voz"
+        hasFinishedRecording -> stringResource(R.string.dialog_audio_title_finished)
+        isRecording -> stringResource(R.string.dialog_audio_title_recording)
+        else -> stringResource(R.string.dialog_audio_title_start)
     }
 
     val bodyText = when {
-        hasFinishedRecording -> "Audio guardado"
-        isRecording -> "Tiempo: $formattedTime"
-        else -> "Pulsa INICIAR GRABACIÓN para comenzar"
+        hasFinishedRecording -> stringResource(R.string.dialog_audio_body_saved)
+        isRecording -> stringResource(R.string.dialog_audio_body_time)+" $formattedTime"
+        else -> stringResource(R.string.dialog_audio_body_prompt)
     }
 
     AlertDialog(
@@ -491,21 +536,21 @@ fun AudioRecorderDialog(onAudioRecorded: (Uri) -> Unit, onCancel: () -> Unit) {
         confirmButton = {
             when {
                 !isRecording && !hasFinishedRecording -> {
-                    Button(onClick = { isRecording = true }) { Text("Iniciar Grabación") }
+                    Button(onClick = { isRecording = true }) { Text(stringResource(R.string.button_start_recording)) }
                 }
                 isRecording -> {
                     Button(onClick = {
                         isRecording = false
                         hasFinishedRecording = true
-                    }) { Text("Detener") }
+                    }) { Text(stringResource(R.string.button_stop_recording)) }
                 }
                 else -> {
-                    Button(onClick = onCancel) { Text("Aceptar") }
+                    Button(onClick = onCancel) { Text(stringResource(R.string.button_accept)) }
                 }
             }
         },
         dismissButton = if (hasFinishedRecording) null else {
-            { Button(onClick = onCancel) { Text("Cancelar") } }
+            { Button(onClick = onCancel) { Text(stringResource(R.string.button_cancelar)) } }
         }
     )
 }

@@ -22,6 +22,6 @@ class AppDataContainer(private val context: Context) : AppContainer {
      */
     override val notaRepository: NotaRepository by lazy {
         val database = AppDatabase.obtenerInstancia(context)
-        OfflineNotaRepository(database.notaDao(), database.multimediaDao())
+        OfflineNotaRepository(database.notaDao(), database.multimediaDao(), database.recordatorioDao())
     }
 }

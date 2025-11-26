@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.notasymedia.data.entity.MultimediaEntity
 import com.example.notasymedia.data.entity.NotaEntity
+import com.example.notasymedia.data.entity.RecordatorioEntity
 import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.data.repository.NotaRepositoryFactory
 import com.example.notasymedia.utils.AlarmScheduler
@@ -23,7 +24,8 @@ data class FormState(
     val fechaVencimiento: Date? = null,
     val horaVencimiento: Int? = null,
     val minutoVencimiento: Int? = null,
-    val multimedia: List<MultimediaState> = emptyList()
+    val multimedia: List<MultimediaState> = emptyList(),
+    val recordatorios: List<RecordatorioState> = emptyList()
 )
 
 data class MultimediaState(
@@ -33,7 +35,13 @@ data class MultimediaState(
     val descripcion: String = ""
 )
 
+data class RecordatorioState(
+    val id: Int = 0,
+    val fechaHora: Date
+)
+
 fun MultimediaEntity.toState() = MultimediaState(id, tipo, uri, descripcion)
+fun RecordatorioEntity.toState() = RecordatorioState(id, Date(fechaHora))
 
 class NotaViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = NotaRepositoryFactory.crear(application)
@@ -54,6 +62,7 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val nota = if (id != -1) repository.obtenerPorId(id) else null
             val multimediaList = if (id != -1) repository.obtenerMultimediaPorNotaId(id).map { it.toState() } else emptyList()
+            val recordatoriosList = if (id != -1) repository.obtenerRecordatoriosPorNotaId(id).map { it.toState() } else emptyList()
 
             _formState.value = if (nota != null) {
                 FormState(
@@ -68,7 +77,8 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
                     minutoVencimiento = nota.fechaVencimiento?.let {
                         Calendar.getInstance().apply { time = it }.get(Calendar.MINUTE)
                     },
-                    multimedia = multimediaList
+                    multimedia = multimediaList,
+                    recordatorios = recordatoriosList
                 )
             } else {
                 FormState()
@@ -113,12 +123,30 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
         _formState.value = _formState.value.copy(multimedia = currentList)
     }
 
+    fun addRecordatorio(fechaHora: Date) {
+        val currentList = _formState.value.recordatorios.toMutableList()
+        currentList.add(RecordatorioState(fechaHora = fechaHora))
+        // Ordenar por fecha para mejor UX
+        currentList.sortBy { it.fechaHora }
+        _formState.value = _formState.value.copy(recordatorios = currentList)
+    }
+
+    fun removeRecordatorio(item: RecordatorioState) {
+        val currentList = _formState.value.recordatorios.toMutableList()
+        currentList.remove(item)
+        _formState.value = _formState.value.copy(recordatorios = currentList)
+    }
+
     // GUARDAR nueva nota
     fun guardar() {
         viewModelScope.launch {
             val state = _formState.value
-            val vencimientoFinal: Date? = if (state.isTask && state.fechaVencimiento != null) {
-                Calendar.getInstance().apply {
+            
+            // Usamos el primer recordatorio como "fecha principal" si existe, sino la fecha manual
+            val fechaPrincipal: Date? = if (state.recordatorios.isNotEmpty()) {
+                state.recordatorios.first().fechaHora
+            } else if (state.isTask && state.fechaVencimiento != null) {
+                 Calendar.getInstance().apply {
                     time = state.fechaVencimiento!!
                     set(Calendar.HOUR_OF_DAY, state.horaVencimiento ?: 0)
                     set(Calendar.MINUTE, state.minutoVencimiento ?: 0)
@@ -132,9 +160,8 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
                 descripcion = state.descripcion,
                 tipo = if (state.isTask) TipoNota.TAREA else TipoNota.NOTA,
                 fechaCreacion = Date(),
-                fechaVencimiento = vencimientoFinal,
+                fechaVencimiento = fechaPrincipal,
                 esCompletada = false,
-                // Campos antiguos nulos
                 tipoMultimedia = null,
                 multimediaUri = null
             )
@@ -148,16 +175,21 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
                 repository.insertarMultimedia(entities)
             }
 
-            // Programar alarma si es tarea
-            if (state.isTask && vencimientoFinal != null) {
-                if (vencimientoFinal.time > System.currentTimeMillis()) {
-                    AlarmScheduler.scheduleAlarm(
-                        context, 
-                        notaId, 
-                        vencimientoFinal.time, 
-                        nuevaNota.titulo, 
-                        nuevaNota.descripcion
-                    )
+            // Guardar y programar recordatorios
+            if (state.isTask) {
+                // Si se usó el modo antiguo (un solo selector), lo añadimos como recordatorio
+                if (state.recordatorios.isEmpty() && fechaPrincipal != null) {
+                     val recId = repository.insertarRecordatorio(RecordatorioEntity(notaId = notaId, fechaHora = fechaPrincipal.time)).toInt()
+                     if (fechaPrincipal.time > System.currentTimeMillis()) {
+                        AlarmScheduler.scheduleAlarm(context, recId, fechaPrincipal.time, nuevaNota.titulo, nuevaNota.descripcion)
+                     }
+                } else {
+                    state.recordatorios.forEach { recState ->
+                        val recId = repository.insertarRecordatorio(RecordatorioEntity(notaId = notaId, fechaHora = recState.fechaHora.time)).toInt()
+                        if (recState.fechaHora.time > System.currentTimeMillis()) {
+                            AlarmScheduler.scheduleAlarm(context, recId, recState.fechaHora.time, nuevaNota.titulo, nuevaNota.descripcion)
+                        }
+                    }
                 }
             }
 
@@ -172,8 +204,11 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
             if (state.id != -1) {
                 val notaOriginal = repository.obtenerPorId(state.id) ?: return@launch
 
-                val vencimientoFinal: Date? = if (state.isTask && state.fechaVencimiento != null) {
-                    Calendar.getInstance().apply {
+                // Usamos el primer recordatorio como "fecha principal" si existe
+                val fechaPrincipal: Date? = if (state.recordatorios.isNotEmpty()) {
+                    state.recordatorios.first().fechaHora
+                } else if (state.isTask && state.fechaVencimiento != null) {
+                     Calendar.getInstance().apply {
                         time = state.fechaVencimiento!!
                         set(Calendar.HOUR_OF_DAY, state.horaVencimiento ?: 0)
                         set(Calendar.MINUTE, state.minutoVencimiento ?: 0)
@@ -186,7 +221,7 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
                     titulo = state.titulo.ifBlank { "Sin título" },
                     descripcion = state.descripcion,
                     tipo = if (state.isTask) TipoNota.TAREA else TipoNota.NOTA,
-                    fechaVencimiento = vencimientoFinal
+                    fechaVencimiento = fechaPrincipal
                 )
                 repository.actualizar(notaActualizada)
 
@@ -199,22 +234,30 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
                     repository.insertarMultimedia(entities)
                 }
 
-                // Manejo de alarmas
-                if (state.isTask && vencimientoFinal != null) {
-                     if (vencimientoFinal.time > System.currentTimeMillis() && !notaActualizada.esCompletada) {
-                        AlarmScheduler.scheduleAlarm(
-                            context,
-                            state.id,
-                            vencimientoFinal.time,
-                            notaActualizada.titulo,
-                            notaActualizada.descripcion
-                        )
+                // Actualizar Recordatorios:
+                // 1. Obtener los viejos para cancelar sus alarmas
+                val viejosRecordatorios = repository.obtenerRecordatoriosPorNotaId(state.id)
+                viejosRecordatorios.forEach { AlarmScheduler.cancelAlarm(context, it.id) }
+                
+                // 2. Borrar de BD
+                repository.eliminarRecordatoriosPorNotaId(state.id)
+
+                // 3. Insertar nuevos y reprogramar
+                if (state.isTask && !notaActualizada.esCompletada) {
+                     if (state.recordatorios.isEmpty() && fechaPrincipal != null) {
+                         // Compatibilidad con modo simple
+                         val recId = repository.insertarRecordatorio(RecordatorioEntity(notaId = state.id, fechaHora = fechaPrincipal.time)).toInt()
+                         if (fechaPrincipal.time > System.currentTimeMillis()) {
+                            AlarmScheduler.scheduleAlarm(context, recId, fechaPrincipal.time, notaActualizada.titulo, notaActualizada.descripcion)
+                         }
                      } else {
-                         AlarmScheduler.cancelAlarm(context, state.id)
+                        state.recordatorios.forEach { recState ->
+                            val recId = repository.insertarRecordatorio(RecordatorioEntity(notaId = state.id, fechaHora = recState.fechaHora.time)).toInt()
+                            if (recState.fechaHora.time > System.currentTimeMillis()) {
+                                AlarmScheduler.scheduleAlarm(context, recId, recState.fechaHora.time, notaActualizada.titulo, notaActualizada.descripcion)
+                            }
+                        }
                      }
-                } else {
-                    // Si ya no es tarea o no tiene fecha
-                    AlarmScheduler.cancelAlarm(context, state.id)
                 }
 
                 resetForm()
@@ -228,12 +271,18 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
             val nota = repository.obtenerPorId(id) ?: return@launch
             if (nota.tipo == TipoNota.TAREA) {
                 repository.actualizar(nota.copy(esCompletada = completada))
+                
+                // Gestionar alarmas
+                val recordatorios = repository.obtenerRecordatoriosPorNotaId(id)
                 if (completada) {
-                    AlarmScheduler.cancelAlarm(context, id)
+                    // Cancelar todas si se completa
+                    recordatorios.forEach { AlarmScheduler.cancelAlarm(context, it.id) }
                 } else {
-                    // Si se desmarca y tiene fecha futura, reprogramar
-                    if (nota.fechaVencimiento != null && nota.fechaVencimiento.time > System.currentTimeMillis()) {
-                         AlarmScheduler.scheduleAlarm(context, id, nota.fechaVencimiento.time, nota.titulo, nota.descripcion)
+                    // Reprogramar si se desmarca y son futuras
+                    recordatorios.forEach { rec ->
+                        if (rec.fechaHora > System.currentTimeMillis()) {
+                            AlarmScheduler.scheduleAlarm(context, rec.id, rec.fechaHora, nota.titulo, nota.descripcion)
+                        }
                     }
                 }
             }
@@ -241,10 +290,14 @@ class NotaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun eliminar(id: Int) {
-        viewModelScope.launch { 
+        viewModelScope.launch {
+            // Cancelar alarmas antes de borrar
+            val recordatorios = repository.obtenerRecordatoriosPorNotaId(id)
+            recordatorios.forEach { AlarmScheduler.cancelAlarm(context, it.id) }
+            
             repository.eliminarMultimediaPorNotaId(id)
+            repository.eliminarRecordatoriosPorNotaId(id)
             repository.eliminarPorId(id) 
-            AlarmScheduler.cancelAlarm(context, id)
         }
     }
 

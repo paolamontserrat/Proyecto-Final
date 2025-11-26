@@ -7,12 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.data.repository.NotaRepositoryFactory
+import com.example.notasymedia.utils.AlarmScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.Calendar
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -23,46 +22,29 @@ class BootReceiver : BroadcastReceiver() {
             val scope = CoroutineScope(Dispatchers.IO)
 
             scope.launch {
-                val tareas = repository.obtenerTareasList()
                 val now = System.currentTimeMillis()
+                // Usamos el nuevo método que busca en la tabla de recordatorios
+                val recordatoriosFuturos = repository.obtenerTodosLosRecordatoriosFuturos(now)
 
-                tareas.forEach { tarea ->
-                    if (tarea.tipo == TipoNota.TAREA && !tarea.esCompletada && tarea.fechaVencimiento != null) {
-                        val time = tarea.fechaVencimiento!!.time
-                        if (time > now) {
-                            scheduleAlarm(context, tarea.id, time, tarea.titulo, tarea.descripcion)
-                        }
+                Log.d("BootReceiver", "Encontrados ${recordatoriosFuturos.size} recordatorios futuros.")
+
+                recordatoriosFuturos.forEach { recordatorio ->
+                    // Necesitamos la información de la tarea padre para el título y descripción
+                    val tareaPadre = repository.obtenerPorId(recordatorio.notaId)
+                    
+                    if (tareaPadre != null && !tareaPadre.esCompletada) {
+                        // Reprogramar usando AlarmScheduler para mantener consistencia
+                        AlarmScheduler.scheduleAlarm(
+                            context, 
+                            recordatorio.id, // Usamos ID del recordatorio, NO de la tarea
+                            recordatorio.fechaHora, 
+                            tareaPadre.titulo, 
+                            tareaPadre.descripcion
+                        )
+                        Log.d("BootReceiver", "Alarma reprogramada: ${tareaPadre.titulo} para ${recordatorio.fechaHora}")
                     }
                 }
             }
         }
-    }
-
-    private fun scheduleAlarm(context: Context, taskId: Int, timeInMillis: Long, title: String, description: String) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, AlarmReceiver::class.java).apply {
-            putExtra("taskId", taskId)
-            putExtra("title", title)
-            putExtra("description", description)
-        }
-
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            taskId,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
-            } else {
-                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
-            }
-        } else {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
-        }
-        
-        Log.d("BootReceiver", "Alarma reprogramada para tarea $taskId a las $timeInMillis")
     }
 }

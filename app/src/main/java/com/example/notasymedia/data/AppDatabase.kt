@@ -9,8 +9,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import android.content.Context
 import com.example.notasymedia.data.dao.NotaDao
 import com.example.notasymedia.data.dao.MultimediaDao
+import com.example.notasymedia.data.dao.RecordatorioDao
 import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.MultimediaEntity
+import com.example.notasymedia.data.entity.RecordatorioEntity
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -26,9 +28,16 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `recordatorios_table` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `notaId` INTEGER NOT NULL, `fechaHora` INTEGER NOT NULL, `activo` INTEGER NOT NULL, FOREIGN KEY(`notaId`) REFERENCES `notas_table`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_recordatorios_table_notaId` ON `recordatorios_table` (`notaId`)")
+    }
+}
+
 @Database(
-    entities = [NotaEntity::class, MultimediaEntity::class],
-    version = 3,
+    entities = [NotaEntity::class, MultimediaEntity::class, RecordatorioEntity::class],
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -36,6 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun notaDao(): NotaDao
     abstract fun multimediaDao(): MultimediaDao
+    abstract fun recordatorioDao(): RecordatorioDao
 
     companion object {
         @Volatile
@@ -49,7 +59,7 @@ abstract class AppDatabase : RoomDatabase() {
                         AppDatabase::class.java,
                         "notas_database"
                     )
-                        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                         .fallbackToDestructiveMigration()
                         .build()
                     INSTANCE = instance

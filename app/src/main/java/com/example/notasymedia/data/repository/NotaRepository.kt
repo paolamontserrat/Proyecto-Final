@@ -2,6 +2,7 @@ package com.example.notasymedia.data.repository
 
 import com.example.notasymedia.data.entity.MultimediaEntity
 import com.example.notasymedia.data.entity.NotaEntity
+import com.example.notasymedia.data.entity.RecordatorioEntity
 import kotlinx.coroutines.flow.Flow
 
 //Repository: abstrae acceso a datos (BD, etc.)
@@ -39,4 +40,14 @@ interface NotaRepository{
     suspend fun obtenerMultimediaPorNotaId(notaId: Int): List<MultimediaEntity>
     suspend fun eliminarMultimediaPorNotaId(notaId: Int)
     suspend fun eliminarMultimedia(multimedia: MultimediaEntity)
+
+    // Recordatorios
+    suspend fun insertarRecordatorio(recordatorio: RecordatorioEntity): Long
+    suspend fun eliminarRecordatorio(recordatorio: RecordatorioEntity)
+    suspend fun eliminarRecordatoriosPorNotaId(notaId: Int)
+    suspend fun obtenerRecordatoriosPorNotaId(notaId: Int): List<RecordatorioEntity>
+    fun obtenerRecordatoriosPorNotaIdFlow(notaId: Int): Flow<List<RecordatorioEntity>>
+    
+    // Método nuevo para BootReceiver
+    suspend fun obtenerTodosLosRecordatoriosFuturos(currentTime: Long): List<RecordatorioEntity>
 }

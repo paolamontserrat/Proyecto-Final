@@ -15,12 +15,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
+import coil.compose.AsyncImage
 import com.example.notasymedia.R
 import com.example.notasymedia.data.entity.NotaEntity
 import com.example.notasymedia.data.entity.TipoNota
 import com.example.notasymedia.viewmodel.MultimediaState
 import com.example.notasymedia.viewmodel.NotaViewModel
+import com.example.notasymedia.viewmodel.RecordatorioState
 import com.example.notasymedia.viewmodel.toState
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -35,10 +36,24 @@ fun DetailScreen(
 ) {
     var nota by remember { mutableStateOf<NotaEntity?>(null) }
     var multimedia by remember { mutableStateOf<List<MultimediaState>>(emptyList()) }
+    // Estado para recordatorios
+    var recordatorios by remember { mutableStateOf<List<RecordatorioState>>(emptyList()) }
 
     LaunchedEffect(itemId) {
-        nota = viewModel.obtenerPorId(itemId)
-        multimedia = viewModel.obtenerMultimedia(itemId).map { it.toState() }
+        // Cargar nota y estado del formulario para obtener recordatorios
+        viewModel.loadNota(itemId)
+    }
+    
+    // Observar el estado del formulario para obtener los recordatorios actualizados
+    val formState by viewModel.formState.collectAsState()
+    
+    LaunchedEffect(formState) {
+        // Actualizar datos locales cuando cambia el estado del form (tras loadNota)
+        if (formState.id == itemId) {
+            nota = viewModel.obtenerPorId(itemId) // Re-obtener entidad pura si es necesario, o usar formState
+            multimedia = formState.multimedia
+            recordatorios = formState.recordatorios
+        }
     }
 
     Scaffold(
@@ -76,14 +91,41 @@ fun DetailScreen(
                         )
                         Spacer(Modifier.width(8.dp))
                     }
-                    if (nota!!.tipo == TipoNota.TAREA && nota!!.fechaVencimiento != null) {
-                        val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-                        val fechaHora = formatter.format(nota!!.fechaVencimiento!!)
-                        Text(
-                            text = stringResource(R.string.label_fecha_vencimiento, fechaHora),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (nota!!.esCompletada) Color.Gray else MaterialTheme.colorScheme.primary
-                        )
+                    // Mostrar fecha principal o "Múltiples recordatorios"
+                    if (nota!!.tipo == TipoNota.TAREA) {
+                        if (recordatorios.isNotEmpty()) {
+                             Text(
+                                text = "Recordatorios:",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        } else if (nota!!.fechaVencimiento != null) {
+                            val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                            val fechaHora = formatter.format(nota!!.fechaVencimiento!!)
+                            Text(
+                                text = stringResource(R.string.label_fecha_vencimiento, fechaHora),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (nota!!.esCompletada) Color.Gray else MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                // LISTA DE RECORDATORIOS (Solo lectura)
+                if (recordatorios.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        recordatorios.forEach { rec ->
+                            val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.Alarm, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = formatter.format(rec.fechaHora),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
                     }
                 }
 

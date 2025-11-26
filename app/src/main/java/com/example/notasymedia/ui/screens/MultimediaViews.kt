@@ -93,6 +93,13 @@ fun VideoPlayerView(uri: Uri) {
     val context = LocalContext.current
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
+            // Configurar AudioAttributes para asegurar que se trate como contenido multimedia (Música/Video)
+            val audioAttributes = com.google.android.exoplayer2.audio.AudioAttributes.Builder()
+                .setUsage(com.google.android.exoplayer2.C.USAGE_MEDIA)
+                .setContentType(com.google.android.exoplayer2.C.AUDIO_CONTENT_TYPE_MOVIE)
+                .build()
+            setAudioAttributes(audioAttributes, true)
+            
             setMediaItem(MediaItem.fromUri(uri))
             prepare()
         }
@@ -126,6 +133,14 @@ fun AudioPlayerView(uri: Uri) {
 
     DisposableEffect(uri) {
         try {
+            // Configurar AudioAttributes para que suene como Multimedia y no como Notificación
+            mediaPlayer.setAudioAttributes(
+                android.media.AudioAttributes.Builder()
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                    .build()
+            )
+            
             mediaPlayer.setDataSource(context, uri)
             mediaPlayer.prepareAsync()
             mediaPlayer.setOnPreparedListener { mp ->

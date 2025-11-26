@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.notasymedia.viewmodel.RecordatorioState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +53,7 @@ fun EntryFormScreen(
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var tempSelectedDate by remember { mutableStateOf<Date?>(null) }
     var showMediaSheet by remember { mutableStateOf(false) }
     var showAudioRecorder by rememberSaveable { mutableStateOf(false) }
 
@@ -186,15 +188,28 @@ fun EntryFormScreen(
             Spacer(Modifier.height(16.dp))
 
             // FECHA/HORA TAREA
+            // RECORDATORIOS (Solo si es Tarea)
             if (formState.isTask) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.label_fecha_vencimiento))
+                Text("Recordatorios", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+
+                // Lista de recordatorios existentes
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    formState.recordatorios.forEach { recordatorio ->
+                        RecordatorioItem(recordatorio = recordatorio, onDelete = { viewModel.removeRecordatorio(recordatorio) })
                     }
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                // Botón para agregar nuevo recordatorio
+                OutlinedButton(
+                    onClick = { showDatePicker = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Filled.AddAlarm, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    OutlinedButton(onClick = { showTimePicker = true }, modifier = Modifier.weight(1f)) {
-                        Text(fechaHoraTexto)
-                    }
+                    Text("Agregar Recordatorio")
                 }
                 Spacer(Modifier.height(16.dp))
             }
@@ -251,8 +266,9 @@ fun EntryFormScreen(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 TextButton({
-                    datePickerState.selectedDateMillis?.let { viewModel.updateFechaVencimiento(Date(it)) }
+                    datePickerState.selectedDateMillis?.let { tempSelectedDate = Date(it) }
                     showDatePicker = false
+                    showTimePicker = true // Abrir selector de hora después de fecha
                 }) { Text(stringResource(R.string.action_confirmar)) }
             },
             dismissButton = { TextButton({ showDatePicker = false }) { Text(stringResource(R.string.action_cancelar)) } }
@@ -260,10 +276,19 @@ fun EntryFormScreen(
     }
 
     if (showTimePicker) {
+        val cal = Calendar.getInstance()
         TimePickerDialog(context, { _, h, m ->
-            viewModel.updateHoraVencimiento(h)
-            viewModel.updateMinutoVencimiento(m)
-        }, 12, 0, true).show()
+            if (tempSelectedDate != null) {
+                val finalCal = Calendar.getInstance().apply {
+                    time = tempSelectedDate!!
+                    set(Calendar.HOUR_OF_DAY, h)
+                    set(Calendar.MINUTE, m)
+                    set(Calendar.SECOND, 0)
+                }
+                viewModel.addRecordatorio(finalCal.time)
+            }
+            showTimePicker = false
+        }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show()
         showTimePicker = false
     }
 
@@ -302,6 +327,29 @@ fun EntryFormScreen(
     }
 }
 
+@Composable
+fun RecordatorioItem(recordatorio: RecordatorioState, onDelete: () -> Unit) {
+    val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.Alarm, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(8.dp))
+                Text(formatter.format(recordatorio.fechaHora))
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Filled.Close, contentDescription = "Eliminar recordatorio")
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

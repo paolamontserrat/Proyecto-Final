@@ -91,10 +91,9 @@ fun DetailScreen(
                         )
                         Spacer(Modifier.width(8.dp))
                     }
-                    // Mostrar fecha principal o "Múltiples recordatorios"
                     if (nota!!.tipo == TipoNota.TAREA) {
                         if (recordatorios.isNotEmpty()) {
-                             Text(
+                            Text(
                                 text = "Recordatorios:",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.primary
